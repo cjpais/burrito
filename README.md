@@ -35,7 +35,9 @@ and verified for it's metadata integrity. If the metadata is not up to date, it 
 kick off the data processing pipeline for that `type`
 
 This is similar to when a new 'memory' is `stored`. Upon recieving the request to store
-a new 'memory', a pipeline is kicked off to process the data and store it in the filesystem.
+a new 'memory', a pipeline is kicked off to process the data and store it in the filesystem. The first step of the pipeline is to store the file on the filesystem.
+First the file is hashed. This hash is used to create a directory with the name of
+the hash, and then the file is stored in that directory.
 
 The pipeline is one of the fundamental units at this point in time. It is meant to be
 easily flexible and extensible. So much so that the client may be able to invoke it's
@@ -59,12 +61,29 @@ They are not integrated into the pipeline yet. The pipeline is meant to flexible
 metadata file. This way comparing responses is easy, and can tweak prompts
 accordingly. A Web UI will be built as well to help with this.
 
+A very long term goal would be to build a protocol between 'brains'. Having
+them be fully encrypted and running LLM under FHE. This also would mean some kind
+of access control scheme, so friends could have more access than a random person.
+And things private to me remain private to me. Other than that I would be happy
+to publish parts of my 'brain'.
+
 ## Install
 
 To install dependencies:
 
 ```bash
 bun install
+```
+
+Set up ENV vars
+
+```bash
+cp .env.example .env
+
+# Fill in the values
+BRAIN_NAME="chroma-db-collection-name" # the name for your chroma db collection
+BRAIN_STORAGE_ROOT="/path/to/your/brain/storage/root" # where you want the files to be stored
+OPENAI_API_KEY='sk-<your-openai-api-key>' # your open ai key
 ```
 
 To run web server
