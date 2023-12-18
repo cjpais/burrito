@@ -43,6 +43,12 @@ own pipeline. Adding new steps and modules to the pipeline should be easy and in
 There is so much to be discovered in the data and how LLM's interact with it, and
 ultimately will be able to retrieve it later.
 
+Right now retrieval is not deeply implemented. It is the goal of this week. Some of it
+will be RAG using ChromaDB as the vector database. Everything else is TBD at the moment.
+A lot of the processing on the `storage` step will be to aid the retrieval. That is why
+all of it is in flexible pipeline steps, so it aids in playing with many different
+retrieval methods from a common and consistent data source.
+
 ## Install
 
 To install dependencies:
