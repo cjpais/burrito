@@ -49,6 +49,16 @@ A lot of the processing on the `storage` step will be to aid the retrieval. That
 all of it is in flexible pipeline steps, so it aids in playing with many different
 retrieval methods from a common and consistent data source.
 
+## Longer Term
+
+Want verything to be run locally instead of calling out to OpenAI. This
+means running LLM, Embedding Model, Whisper, and Image->Text locally.
+
+Running these all with `llama.cpp` seems very doable and has been tested already.
+They are not integrated into the pipeline yet. The pipeline is meant to flexible so the same step can be run with different LLM's and write their output to the same
+metadata file. This way comparing responses is easy, and can tweak prompts
+accordingly. A Web UI will be built as well to help with this.
+
 ## Install
 
 To install dependencies:
