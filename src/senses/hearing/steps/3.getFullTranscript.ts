@@ -18,7 +18,7 @@ export const getFullTranscriptStep: Step<
   name: "getFullTranscript",
   inputType: TranscribedAudioMetadataSchema,
   outputType: FullTranscriptSchema,
-  run: async (metadata, fileInfo) => {
+  run: async (metadata) => {
     const transcript = metadata.audio.chunks
       .map((chunk) => chunk.transcript)
       .join(" ");

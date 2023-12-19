@@ -6,11 +6,8 @@ import {
   hashFile,
   storeFile,
 } from "../memory/files";
-import { processHearing } from "../senses/hearing";
-import { processReading } from "../senses/reading";
 import { z } from "zod";
 import { pipelines } from ".";
-// import { processReading } from "../senses/reading";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]),
@@ -20,8 +17,7 @@ export type GenericObject = { [key: string]: any };
 const activeRequests = new Map<string, boolean>();
 
 export type PipelineFunction = (
-  metadata: FileMetadata & GenericObject,
-  fileInfo: FileInfo
+  metadata: FileMetadata & GenericObject
 ) => Promise<FileMetadata & GenericObject>;
 
 export const notFoundHandler = (request: Request) => {
@@ -84,7 +80,7 @@ export const handleStoreRequest = async (request: Request) => {
     // run steps
     if (pipelines.has(type)) {
       let pipeline = pipelines.get(type)!;
-      metadata = await pipeline(parsedMetadata, fileInfo);
+      metadata = await pipeline(parsedMetadata);
     } else {
       return new Response(`No pipeline for type ${type}`, { status: 400 });
     }

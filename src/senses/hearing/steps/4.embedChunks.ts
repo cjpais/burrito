@@ -27,7 +27,7 @@ export const getChunkEmbeddingsStep: Step<
   name: "getChunkEmbeddings",
   inputType: TranscribedAudioMetadataSchema,
   outputType: ChunkEmbeddingsSchema,
-  run: async (metadata, fileInfo) => {
+  run: async (metadata) => {
     const embeddings = await generateEmbeddings(
       metadata.audio.chunks.map((chunk) => chunk.transcript)
     );

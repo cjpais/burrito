@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { FileMetadataSchema, getFileInfo } from "../memory/files";
 import { processHearing } from "../senses/hearing";
 import { processReading } from "../senses/reading";
@@ -28,13 +29,12 @@ const runPipelineOnAllFiles = async () => {
         JSON.parse(await Bun.file(`${fileDir}/metadata.json`).text())
       );
 
-      const fileInfo = await getFileInfo(metadata);
-
       // const file = await Bun.file(`${fileDir}/data.${metadata.ext}`);
 
       const pipeline = pipelines.get(metadata.type);
       if (pipeline) {
-        await pipeline(metadata, fileInfo);
+        console.log(`Running pipeline for file: ${metadata.hash}`);
+        await pipeline(metadata);
       } else {
         console.log(
           `No pipeline found for type ${metadata.type} file: ${metadata.hash}`
@@ -50,6 +50,7 @@ export const brainServer = async () => {
   console.time("runPipelineOnAllFiles");
   await runPipelineOnAllFiles();
   console.timeEnd("runPipelineOnAllFiles");
+  console.log(chalk.green(`🧠 ${process.env.BRAIN_NAME} is online`));
 
   Bun.serve({
     port: 53096,

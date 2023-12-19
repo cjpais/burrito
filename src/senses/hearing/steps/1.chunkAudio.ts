@@ -4,10 +4,12 @@ import {
   FileInfo,
   FileMetadata,
   FileMetadataSchema,
+  getFileInfo,
   getFilePath,
 } from "../../../memory/files";
 import { getMediaFileInfo, processChunk } from "../../../external/ffmpeg";
 import { pipelineLog } from "../../../cognition/pipeline";
+import fs from "fs";
 
 export const InitialChunkSchema = z.object({
   filename: z.string(),
@@ -67,7 +69,8 @@ const chunkAudio = async (
 const validateChunkAudioStep = async (
   metadata: InitialAudioMetadata
 ): Promise<boolean> => {
-  const info = await getMediaFileInfo(getFilePath(metadata));
+  const fileInfo = await getFileInfo(metadata);
+  const info = await getMediaFileInfo(fileInfo.path);
   // validate duration is the same
   const duration = info.format.duration;
   if (!duration || duration !== metadata.audio.durationSec) {
@@ -83,28 +86,37 @@ const validateChunkAudioStep = async (
 
   // determine the number of chunks from the original file
   for (let i = 0; i < metadata.audio.chunks.length; i++) {
+    console.log("validating chunk", i);
     const chunk = metadata.audio.chunks[i];
     if (chunk.filename !== `chunk_${i}.${metadata.ext}`) {
       console.log("chunk filename doesnt match", chunk.filename);
       return false;
     }
     if (chunk.number !== i) return false;
+
+    const chunkPath = `${fileInfo.dir}/${chunk.filename}`;
+    if (!fs.existsSync(chunkPath)) {
+      console.log("chunk doesnt exist", chunkPath);
+      return false;
+    }
   }
 
   return true;
 };
 
 export const chunkAudioStep: Step<
-  z.infer<typeof FileMetadataSchema>,
+  z.infer<typeof FileMetadataSchema & any>,
   InitialAudioMetadata
 > = {
   name: "chunkAudio",
   inputType: FileMetadataSchema,
   outputType: InitialAudioMetadataSchema,
   validate: validateChunkAudioStep,
-  run: async (metadata, fileInfo) => {
+  run: async (metadata) => {
     pipelineLog(metadata.hash, "Chunking Audio");
+    const fileInfo = await getFileInfo(metadata);
     const newMetadata = await chunkAudio(fileInfo.path, fileInfo.dir);
-    return merge(metadata, newMetadata);
+    metadata = merge(metadata, newMetadata);
+    return metadata;
   },
 };
