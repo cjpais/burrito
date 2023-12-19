@@ -8,9 +8,11 @@ import {
 } from "../memory/files";
 import { z } from "zod";
 import { pipelines } from ".";
+import { getMediaFileInfo } from "../external/ffmpeg";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]),
+  created: z.number().optional(),
 });
 export type GenericObject = { [key: string]: any };
 
@@ -64,6 +66,20 @@ export const handleStoreRequest = async (request: Request) => {
     // if the file is stored sucessfully we can
     fileInfo = await storeFile(file);
     metadata.ext = fileInfo.ext;
+
+    metadata.added = Math.floor(new Date().getTime() / 1000);
+    metadata.created = metadata.added;
+
+    if (type === "audio") {
+      // probe the file to get the created date
+      // TODO move this to a pipeline
+      const probe = await getMediaFileInfo(fileInfo.path);
+      if (probe.format.tags?.creation_time)
+        metadata.created = Math.floor(
+          new Date(probe.format.tags.creation_time).getTime() / 1000
+        );
+      // metadata.created = probe.streams[0].
+    }
 
     if (fileInfo.status === "exists") {
       // load the metadata into the variable

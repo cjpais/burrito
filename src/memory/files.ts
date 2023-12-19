@@ -7,8 +7,8 @@ export const FileMetadataSchema = z.object({
   hash: z.string(),
   type: z.string(),
   ext: z.string(),
-  // created: z.number(),
-  // modified: z.number(),
+  created: z.number(),
+  added: z.number(),
 });
 
 export type FileMetadata = z.infer<typeof FileMetadataSchema>;

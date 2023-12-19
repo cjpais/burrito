@@ -86,7 +86,6 @@ const validateChunkAudioStep = async (
 
   // determine the number of chunks from the original file
   for (let i = 0; i < metadata.audio.chunks.length; i++) {
-    console.log("validating chunk", i);
     const chunk = metadata.audio.chunks[i];
     if (chunk.filename !== `chunk_${i}.${metadata.ext}`) {
       console.log("chunk filename doesnt match", chunk.filename);
