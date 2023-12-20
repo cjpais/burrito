@@ -83,5 +83,7 @@ export const processPipeline = async <Input>(
     output = newOutput;
   }
 
+  console.log(`Finished processing pipeline ${tag ?? ""}`);
+
   return output;
 };

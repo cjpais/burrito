@@ -4,7 +4,9 @@ import { processHearing } from "../senses/hearing";
 import { processReading } from "../senses/reading";
 import {
   PipelineFunction,
+  fileHandler,
   handleStoreRequest,
+  metadataHandler,
   notFoundHandler,
 } from "./handlers";
 import fs from "fs";
@@ -44,6 +46,19 @@ const runPipelineOnAllFiles = async () => {
   }
 };
 
+type RouteHandler = (request: Request) => Response | Promise<Response>;
+
+interface Routes {
+  [path: string]: RouteHandler;
+}
+
+const routes: Routes = {
+  // "^/$": indexHandler,
+  "^/f/([^/]+)$": fileHandler,
+  "^/m/([^/]+)$": metadataHandler,
+  "^/store$": handleStoreRequest,
+};
+
 export const brainServer = async () => {
   // TODO go through all the files and make sure they
   // have the right metadata according to their type
@@ -57,13 +72,11 @@ export const brainServer = async () => {
     fetch(request) {
       const url = new URL(request.url);
 
-      if (url.pathname === "/store") {
-        return notFoundHandler(request);
-      } else if (url.pathname === "/new/store") {
-        return handleStoreRequest(request);
-      } else {
-        return notFoundHandler(request);
+      for (const pattern in routes) {
+        const regex = new RegExp(pattern);
+        if (regex.test(url.pathname)) return routes[pattern](request);
       }
+      return notFoundHandler(request);
     },
   });
 };

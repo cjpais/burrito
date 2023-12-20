@@ -9,6 +9,7 @@ export const FileMetadataSchema = z.object({
   ext: z.string(),
   created: z.number(),
   added: z.number(),
+  originalName: z.string(),
 });
 
 export type FileMetadata = z.infer<typeof FileMetadataSchema>;

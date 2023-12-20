@@ -41,10 +41,13 @@ const chunkAudio = async (
   const metadata = await getMediaFileInfo(src);
 
   const duration = metadata.format.duration!;
+  const durationStr = `${Math.floor(duration / 60)}min:${Math.floor(
+    duration % 60
+  )}sec (${duration}sec)`;
   const numChunks = Math.ceil(duration / lenSec);
 
   console.log(
-    `🔪 Splitting ${duration} into ${lenSec / 60}min ${numChunks} chunks`
+    `🔪 Splitting ${durationStr} into ${numChunks} ${lenSec / 60}min chunks`
   );
 
   const outputFiles: { filename: string; number: number }[] = [];
