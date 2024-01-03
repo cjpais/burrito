@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import { z } from "zod";
-import { FileInfo } from "../memory/files";
 
 export const pipelineLog = (id: string, message: string) =>
   console.log(
@@ -69,7 +68,7 @@ export const processPipeline = async <Input>(
       }
     } else {
       console.log(`Couldn't parse output of step ${step.name}`);
-      // console.log(parsedOutput.error.message);
+      console.log(parsedOutput.error.message);
     }
 
     console.log(`Running step ${step.name}`);
@@ -77,7 +76,10 @@ export const processPipeline = async <Input>(
     const parsedNewOutput = step.outputType.safeParse(newOutput);
     if (!parsedNewOutput.success) {
       throw new Error(
-        `Output of step is not valid.\nOutput: ${newOutput}\nStep: ${step.name}\nExpected: ${step.outputType}`
+        // `Output of step is not valid.\nOutput: ${JSON.stringify(
+        //   newOutput
+        // )}\nStep: ${step.name}\nExpected: ${JSON.stringify(step.outputType)}`
+        `Output of step is not valid.\nError: ${parsedNewOutput.error.message}`
       );
     }
     output = newOutput;

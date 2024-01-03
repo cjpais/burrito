@@ -3,18 +3,16 @@ import { FileMetadataSchema, getFileInfo } from "../memory/files";
 import { processHearing } from "../senses/hearing";
 import { processReading } from "../senses/reading";
 import {
-  PipelineFunction,
   fileHandler,
-  handleStoreRequest,
+  indexHandler,
   metadataHandler,
   notFoundHandler,
 } from "./handlers";
 import fs from "fs";
+import { handleStoreRequest, storePipelines } from "./handlers/store";
+import { handleQueryRequest } from "./handlers/query";
 
-export const pipelines = new Map<string, PipelineFunction>([
-  ["audio", processHearing],
-  ["text", processReading],
-]);
+export let metadataList: any[] = [];
 
 const runPipelineOnAllFiles = async () => {
   const root = `${process.env.BRAIN_STORAGE_ROOT!}/data`;
@@ -33,10 +31,19 @@ const runPipelineOnAllFiles = async () => {
 
       // const file = await Bun.file(`${fileDir}/data.${metadata.ext}`);
 
-      const pipeline = pipelines.get(metadata.type);
+      const pipeline = storePipelines.get(metadata.type);
       if (pipeline) {
         console.log(`Running pipeline for file: ${metadata.hash}`);
-        await pipeline(metadata);
+
+        const newMetadata = await pipeline(metadata);
+
+        if (JSON.stringify(newMetadata) !== JSON.stringify(metadata)) {
+          console.log("metadata changed, updating");
+          await Bun.write(
+            `${fileDir}/metadata.json`,
+            JSON.stringify(newMetadata)
+          );
+        }
       } else {
         console.log(
           `No pipeline found for type ${metadata.type} file: ${metadata.hash}`
@@ -53,19 +60,17 @@ interface Routes {
 }
 
 const routes: Routes = {
-  // "^/$": indexHandler,
+  "^/$": indexHandler,
   "^/f/([^/]+)$": fileHandler,
   "^/m/([^/]+)$": metadataHandler,
   "^/store$": handleStoreRequest,
+  "^/query$": handleQueryRequest,
 };
 
 export const brainServer = async () => {
   // TODO go through all the files and make sure they
   // have the right metadata according to their type
-  console.time("runPipelineOnAllFiles");
-  await runPipelineOnAllFiles();
-  console.timeEnd("runPipelineOnAllFiles");
-  console.log(chalk.green(`🧠 ${process.env.BRAIN_NAME} is online`));
+  runPipelineOnAllFiles();
 
   Bun.serve({
     port: 53096,

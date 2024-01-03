@@ -4,6 +4,8 @@
   "type": "module",
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
     "bun-types": "latest"
   },
   "scripts": {
@@ -13,11 +15,15 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "ajv": "^8.12.0",
     "chalk": "^5.3.0",
     "chromadb": "^1.6.1",
+    "dayjs": "^1.11.10",
     "fluent-ffmpeg": "^2.1.2",
     "mime": "^4.0.0",
     "openai": "^4.21.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "zod": "^3.22.4"
   }
 }

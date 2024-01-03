@@ -1,6 +1,11 @@
-export const summarize = (
+import { generateCompletion } from "./openai";
+
+export const summarize = async (
   text: string,
   summaryLength: string = "4 Sentences"
 ) => {
-  return text;
+  return generateCompletion(
+    `You are an excellent summarizer. You will summarize any text into ${summaryLength}`,
+    text
+  );
 };

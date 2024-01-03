@@ -3,17 +3,18 @@ import { generateEmbeddings } from "../../../cognition/openai";
 import {
   TranscribedAudioMetadata,
   TranscribedAudioMetadataSchema,
+  TranscribedChunkSchema,
 } from "./2.transcribeAudio";
 import { Step, merge } from "../../../cognition/pipeline";
 
-const ChunkEmbeddingsSchema = TranscribedAudioMetadataSchema.and(
+export const ChunkWithEmbeddingSchema = TranscribedChunkSchema.extend({
+  embedding: z.array(z.number()).length(1536),
+});
+
+export const ChunkEmbeddingsSchema = TranscribedAudioMetadataSchema.merge(
   z.object({
     audio: z.object({
-      chunks: z.array(
-        z.object({
-          embedding: z.array(z.number()).length(1536),
-        })
-      ),
+      chunks: z.array(ChunkWithEmbeddingSchema),
     }),
   })
 );
