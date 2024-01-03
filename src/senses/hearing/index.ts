@@ -14,9 +14,11 @@ import { getChunkEmbeddingsStep } from "./steps/4.getChunkEmbeddings";
 import { getChunkSummariesStep } from "./steps/5.getChunkSummaries";
 import { metadataList } from "../../server";
 import { generateSummaryStep } from "./steps/7.generateSummary";
+import { cleanAudioStep } from "./steps/0.cleanAudio";
 
 // NOTE THE SCHEMAS ARE FIXED. THEY CANNOT BE CHANGED. IF YOU WANT TO CHANGE THEM YOU NEED TO MAKE A NEW STEP
 const hearingSteps: Step<any, any>[] = [
+  cleanAudioStep,
   chunkAudioStep,
   transcribeChunksStep,
   getFullTranscriptStep,

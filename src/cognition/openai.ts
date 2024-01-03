@@ -50,8 +50,7 @@ export const generateTranscriptions = async (files: string[]) => {
         .create({
           file: fs.createReadStream(filename),
           model: "whisper-1",
-          prompt:
-            "Transcribe the audio. Note you will come across some new names. They are: Dr. Lingonberry. Spurvis. Pasquale.",
+          prompt: "Transcribe the audio.",
         })
         .then((transcription) => ({
           transcription: transcription.text,

@@ -10,6 +10,7 @@ import {
 import { getMediaFileInfo, processChunk } from "../../../external/ffmpeg";
 import { pipelineLog } from "../../../cognition/pipeline";
 import fs from "fs";
+import { CleanAudio, CleanAudioSchema } from "./0.cleanAudio";
 
 export const InitialChunkSchema = z.object({
   filename: z.string(),
@@ -106,19 +107,18 @@ const validateChunkAudioStep = async (
   return true;
 };
 
-export const chunkAudioStep: Step<
-  z.infer<typeof FileMetadataSchema & any>,
-  InitialAudioMetadata
-> = {
+export const chunkAudioStep: Step<CleanAudio, InitialAudioMetadata> = {
   name: "chunkAudio",
-  inputType: FileMetadataSchema,
+  inputType: CleanAudioSchema,
   outputType: InitialAudioMetadataSchema,
   validate: validateChunkAudioStep,
   run: async (metadata) => {
     pipelineLog(metadata.hash, "Chunking Audio");
     const fileInfo = await getFileInfo(metadata);
-    const newMetadata = await chunkAudio(fileInfo.path, fileInfo.dir);
-    metadata = merge(metadata, newMetadata);
-    return metadata;
+    const newMetadata = await chunkAudio(
+      metadata.audio.cleanedFile,
+      fileInfo.dir
+    );
+    return merge(metadata, newMetadata);
   },
 };

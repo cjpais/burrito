@@ -40,3 +40,34 @@ export function processChunk(
       .run();
   });
 }
+
+export const cleanAudio = async (
+  input: string,
+  output: string
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(input)
+      .audioFilter(
+        "silenceremove=start_periods=1:stop_periods=-1:stop_duration=5:start_threshold=-45dB:stop_threshold=-45dB"
+      )
+      .audioFilter("highpass=f=100")
+      .audioFilter("lowpass=f=15000")
+      .audioFilter("acompressor")
+      .audioFilter("loudnorm=I=-16:TP=-1.5:LRA=11")
+
+      // Event: on process completion
+      .on("end", () => {
+        console.log(`Audio cleaned and saved to ${output}`);
+        resolve();
+      })
+
+      // Event: on error
+      .on("error", (err) => {
+        console.error(`An error occurred: ${err.message}`);
+        reject(err);
+      })
+
+      // Output the processed file
+      .save(output);
+  });
+};
