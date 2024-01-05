@@ -22,14 +22,17 @@ const Index = ({ metadata }: { metadata: any[] }) => {
         <div className="memory-holder">
           {metadata.map((m, id) => (
             <div key={id} className="memory-holder">
-              <b style={{ color: "#777", fontStyle: "bold" }}>
+              <a
+                style={{ color: "#777", fontStyle: "bold" }}
+                href={`/${m.hash}`}
+              >
                 {dayjs(m.created * 1000).format("MMM D, YYYY - h:mma")}
-              </b>
+              </a>
               {/* <p style={{ fontSize: ".75rem", fontStyle: "italic" }}>
                 {m.hash}
               </p> */}
               <p>{m.summary}</p>
-              <p>{m.audio?.transcript ?? "no transcript"}</p>
+              {/* <p>{m.audio?.transcript ?? "no transcript"}</p> */}
             </div>
           ))}
           {/* {memories.map((memory) => (

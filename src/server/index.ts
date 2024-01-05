@@ -3,6 +3,7 @@ import { FileMetadataSchema, getFileInfo } from "../memory/files";
 import { processHearing } from "../senses/hearing";
 import { processReading } from "../senses/reading";
 import {
+  entryHandler,
   fileHandler,
   indexHandler,
   metadataHandler,
@@ -61,6 +62,7 @@ interface Routes {
 
 const routes: Routes = {
   "^/$": indexHandler,
+  "^/[A-Fa-f0-9]{64}$": entryHandler,
   "^/f/([^/]+)$": fileHandler,
   "^/m/([^/]+)$": metadataHandler,
   "^/store$": handleStoreRequest,

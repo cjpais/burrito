@@ -2,6 +2,7 @@ import { z } from "zod";
 import { metadataList } from ".";
 import { renderToReadableStream } from "react-dom/server";
 import Index from "./pages";
+import Entry from "./pages/entry";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -19,6 +20,21 @@ export const indexHandler = async (request: Request) => {
     <Index metadata={sortedMetadata} />
   );
 
+  return new Response(page, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html",
+    },
+  });
+};
+
+export const entryHandler = async (request: Request) => {
+  const url = new URL(request.url);
+  const hash = decodeURIComponent(url.pathname).split("/").pop();
+  const metadata = metadataList.find((m) => m.hash === hash);
+  if (!metadata) return notFoundHandler(request);
+
+  const page = await renderToReadableStream(<Entry metadata={metadata} />);
   return new Response(page, {
     status: 200,
     headers: {
