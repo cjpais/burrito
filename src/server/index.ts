@@ -18,7 +18,22 @@ export let metadataList: any[] = [];
 
 const runPipelineOnAllFiles = async () => {
   const root = `${process.env.BRAIN_STORAGE_ROOT!}/data`;
+  if (!fs.existsSync(root)) {
+    fs.mkdirSync(root, { recursive: true });
+  }
   const dirs = fs.readdirSync(root);
+
+  // init metadata list
+  console.log("INIT METADATA LIST");
+  for (const dir of dirs) {
+    const fileDir = `${root}/${dir}`;
+    if (fs.statSync(fileDir).isDirectory()) {
+      const metadata = FileMetadataSchema.passthrough().parse(
+        JSON.parse(await Bun.file(`${fileDir}/metadata.json`).text())
+      );
+      metadataList.push(metadata);
+    }
+  }
 
   for (const dir of dirs) {
     const fileDir = `${root}/${dir}`;
@@ -29,14 +44,8 @@ const runPipelineOnAllFiles = async () => {
       // todo will need to process and attempt to infer type of pipeline to run
 
       // time this function
-      const start = Date.now();
       const metadata = FileMetadataSchema.passthrough().parse(
         JSON.parse(await Bun.file(`${fileDir}/metadata.json`).text())
-      );
-      console.log(
-        `Parsing metadata for file: ${metadata.hash} took ${
-          Date.now() - start
-        }ms`
       );
 
       // const file = await Bun.file(`${fileDir}/data.${metadata.ext}`);
@@ -65,6 +74,14 @@ const runPipelineOnAllFiles = async () => {
       }
     }
   }
+
+  console.log("REMOVING DUPLICATES");
+  metadataList = metadataList.reduce((acc, curr) => {
+    if (!acc.find((m: any) => m.hash === curr.hash)) {
+      acc.push(curr);
+    }
+    return acc;
+  }, []);
 };
 
 type RouteHandler = (request: Request) => Response | Promise<Response>;
