@@ -14,9 +14,10 @@ import { getChunkEmbeddingsStep } from "./steps/4.getChunkEmbeddings";
 import { getChunkSummariesStep } from "./steps/5.getChunkSummaries";
 import { metadataList } from "../../server";
 import { generateSummaryStep } from "./steps/7.generateSummary";
-import { cleanAudioStep } from "./steps/0.cleanAudio";
+import { cleanAudioStep } from "./steps/0b.cleanAudio";
 import { embedChunksStep } from "./steps/6.embedChunks";
 import { addTitleStep } from "./steps/8.addTitle";
+import { generateCompostStep } from "./steps/9.compost";
 
 // NOTE THE SCHEMAS ARE FIXED. THEY CANNOT BE CHANGED. IF YOU WANT TO CHANGE THEM YOU NEED TO MAKE A NEW STEP
 const hearingSteps: Step<any, any>[] = [
@@ -29,6 +30,7 @@ const hearingSteps: Step<any, any>[] = [
   generateSummaryStep,
   embedChunksStep,
   addTitleStep,
+  // generateCompostStep,
   // TODO
   // summarise?
   // db? vdb? in memory db?

@@ -32,9 +32,8 @@ const Entry = ({ metadata, similar }: { metadata: any; similar: any }) => {
             </b>
             <i style={{ fontStyle: "italic" }}>Summary: {metadata.summary}</i>
             <audio controls src={`/f/${metadata.hash}`} />
-            <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}>
-              Transcript: {metadata.audio.transcript}
-            </p>
+            {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
+            <p>Transcript: {metadata.audio.transcript}</p>
           </div>
           <div className="metadata-container">
             <h1>Similar Entries</h1>

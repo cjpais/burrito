@@ -60,7 +60,7 @@ export const findSimilar = async (
     where,
     include: [IncludeEnum.Metadatas, IncludeEnum.Distances],
   });
-  console.log(queryResults);
+  // console.log(queryResults);
 
   let similarSimple = [];
   for (let i = 0; i < queryResults.metadatas[0].length; i++) {

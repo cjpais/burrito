@@ -10,7 +10,7 @@ import {
 import { getMediaFileInfo, processChunk } from "../../../external/ffmpeg";
 import { pipelineLog } from "../../../cognition/pipeline";
 import fs from "fs";
-import { CleanAudio, CleanAudioSchema } from "./0.cleanAudio";
+import { CleanAudio, CleanAudioSchema } from "./0b.cleanAudio";
 
 export const InitialChunkSchema = z.object({
   filename: z.string(),

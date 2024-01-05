@@ -75,14 +75,16 @@ export const handleStoreRequest = async (request: Request) => {
     metadata.created = metadata.added;
     metadata.originalName = file.name;
 
-    if (type === "audio") {
+    console.log(type);
+    if (basicType === "audio") {
       // probe the file to get the created date
       // TODO move this to a pipeline
       const probe = await getMediaFileInfo(fileInfo.path);
-      if (probe.format.tags?.creation_time)
+      if (probe.format.tags?.creation_time) {
         metadata.created = Math.floor(
           new Date(probe.format.tags.creation_time).getTime() / 1000
         );
+      }
       // metadata.created = probe.streams[0].
     }
 
@@ -103,7 +105,7 @@ export const handleStoreRequest = async (request: Request) => {
       let pipeline = storePipelines.get(basicType)!;
       metadata = await pipeline(parsedMetadata);
     } else {
-      return new Response(`No pipeline for type ${type}`, { status: 400 });
+      return new Response(`No pipeline for type ${basicType}`, { status: 400 });
     }
 
     return new Response(JSON.stringify(metadata), {
