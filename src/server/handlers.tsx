@@ -3,7 +3,7 @@ import { metadataList } from ".";
 import { renderToReadableStream } from "react-dom/server";
 import Index from "./pages";
 import Entry from "./pages/entry";
-import { collection } from "../memory/vector";
+import { collection, findSimilar } from "../memory/vector";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -35,44 +35,19 @@ export const entryHandler = async (request: Request) => {
   const metadata = metadataList.find((m) => m.hash === hash);
   if (!metadata) return notFoundHandler(request);
 
-  const queryEmbeddings = metadata.audio.chunks.map((chunk) => chunk.embedding);
-
-  // get similar docs
-  const similar = await collection.query({
-    queryEmbeddings,
-    nResults: 5,
-    where: {
-      hash: {
-        $ne: metadata.hash,
-      },
-    },
-    include: ["metadatas", "distances"],
-  });
-
-  let similarSimple = [];
-  for (let i = 0; i < similar.metadatas[0].length; i++) {
-    const meta = metadataList.find(
-      (m) => m.hash === similar.metadatas[0][i].hash
-    );
-    similarSimple.push({
-      hash: similar.metadatas[0][i].hash,
-      distance: similar.distances[0][i],
-      summary: meta.summary,
-      title: meta.title,
-    });
-  }
-  similarSimple = similarSimple.sort((a, b) => a.distance - b.distance);
-  let unique = new Map();
-
-  similarSimple.forEach((item) => {
-    unique.set(item.hash, item);
-  });
-  const uniqueArray = Array.from(unique.values()).sort(
-    (a, b) => a.distance - b.distance
+  const queryEmbeddings = metadata.audio.chunks.map(
+    (chunk: any) => chunk.embedding
   );
 
+  // get similar docs
+  const similar = await findSimilar(queryEmbeddings, 5, {
+    hash: {
+      $ne: metadata.hash,
+    },
+  });
+
   const page = await renderToReadableStream(
-    <Entry metadata={metadata} similar={uniqueArray} />
+    <Entry metadata={metadata} similar={similar} />
   );
   return new Response(page, {
     status: 200,
@@ -151,5 +126,38 @@ export const fileHandler = async (request: Request) => {
   } catch (error) {
     console.log(error);
     return notFoundHandler(request);
+  }
+};
+
+const EmbeddingRequestSchema = z.object({
+  vectors: z.array(z.array(z.number()).length(1536)),
+  num: z.number().max(50).optional(),
+});
+
+export const handleEmbeddingsRequest = async (request: Request) => {
+  if (request.method !== "POST")
+    return new Response("Method not allowed", { status: 405 });
+
+  try {
+    const body = await request.json();
+    const { vectors, num } = EmbeddingRequestSchema.parse(body);
+
+    const similar = await findSimilar(vectors, num || 5);
+    const response = {
+      similar,
+      brain: {
+        version: process.env.BRAIN_VERSION,
+        name: process.env.BRAIN_NAME,
+      },
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    return new Response(`Bad request.\n\n Error: ${error}`, { status: 400 });
   }
 };

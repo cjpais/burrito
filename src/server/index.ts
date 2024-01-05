@@ -5,6 +5,7 @@ import { processReading } from "../senses/reading";
 import {
   entryHandler,
   fileHandler,
+  handleEmbeddingsRequest,
   indexHandler,
   metadataHandler,
   notFoundHandler,
@@ -79,6 +80,7 @@ const routes: Routes = {
   "^/m/([^/]+)$": metadataHandler,
   "^/store$": handleStoreRequest,
   "^/query$": handleQueryRequest,
+  "^/query/embeddings$": handleEmbeddingsRequest,
 };
 
 export const brainServer = async () => {
