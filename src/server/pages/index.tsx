@@ -9,13 +9,13 @@ const Index = ({ metadata }: { metadata: any[] }) => {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {/* <link rel="icon" type="image/x-icon" href="/static/favicon.ico" /> */}
-        <title>CJ's Brain</title>
+        <title>{process.env.BRAIN_NAME}</title>
         <Style />
       </head>
       <body>
         <h1>
           <a href="/" className="hidden-link">
-            CJ's Brain
+            {process.env.BRAIN_NAME}
           </a>
         </h1>
         {/* <img src="/static/cj.svg" height="50px" /> */}

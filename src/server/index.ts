@@ -26,8 +26,16 @@ const runPipelineOnAllFiles = async () => {
     if (fs.statSync(fileDir).isDirectory()) {
       // if metadata.json does not exist log error and contine..
       // todo will need to process and attempt to infer type of pipeline to run
+
+      // time this function
+      const start = Date.now();
       const metadata = FileMetadataSchema.passthrough().parse(
         JSON.parse(await Bun.file(`${fileDir}/metadata.json`).text())
+      );
+      console.log(
+        `Parsing metadata for file: ${metadata.hash} took ${
+          Date.now() - start
+        }ms`
       );
 
       // const file = await Bun.file(`${fileDir}/data.${metadata.ext}`);
@@ -36,7 +44,11 @@ const runPipelineOnAllFiles = async () => {
       if (pipeline) {
         console.log(`Running pipeline for file: ${metadata.hash}`);
 
+        const start = Date.now();
         const newMetadata = await pipeline(metadata);
+        console.log(
+          `Pipeline for file: ${metadata.hash} took ${Date.now() - start}ms`
+        );
 
         if (JSON.stringify(newMetadata) !== JSON.stringify(metadata)) {
           console.log("metadata changed, updating");
@@ -75,7 +87,7 @@ export const brainServer = async () => {
   runPipelineOnAllFiles();
 
   Bun.serve({
-    port: 53096,
+    port: process.env.PORT ?? 3000,
     fetch(request) {
       const url = new URL(request.url);
 

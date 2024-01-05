@@ -15,13 +15,13 @@ const Entry = ({ metadata, similar }: { metadata: any; similar: any }) => {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {/* <link rel="icon" type="image/x-icon" href="/static/favicon.ico" /> */}
-        <title>CJ's Brain</title>
+        <title>{metadata.title}</title>
         <Style />
       </head>
       <body>
         <h1>
           <a href="/" className="hidden-link">
-            CJ's Brain
+            {process.env.BRAIN_NAME}
           </a>
         </h1>
         <div className="content-container">
@@ -51,7 +51,11 @@ const Entry = ({ metadata, similar }: { metadata: any; similar: any }) => {
                     0x{s.hash.slice(0, 6)}
                   </a>
                   .....Similarity: {1 - s.distance}
-                  <h3>{s.title}</h3>
+                  <h3>
+                    <a style={{ color: "#EEE" }} href={`/${s.hash}`}>
+                      {s.title}
+                    </a>
+                  </h3>
                 </p>
                 <p>{s.summary}</p>
               </div>
