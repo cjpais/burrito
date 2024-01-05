@@ -3,6 +3,7 @@ import { metadataList } from ".";
 import { renderToReadableStream } from "react-dom/server";
 import Index from "./pages";
 import Entry from "./pages/entry";
+import { collection } from "../memory/vector";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -34,7 +35,45 @@ export const entryHandler = async (request: Request) => {
   const metadata = metadataList.find((m) => m.hash === hash);
   if (!metadata) return notFoundHandler(request);
 
-  const page = await renderToReadableStream(<Entry metadata={metadata} />);
+  const queryEmbeddings = metadata.audio.chunks.map((chunk) => chunk.embedding);
+
+  // get similar docs
+  const similar = await collection.query({
+    queryEmbeddings,
+    nResults: 5,
+    where: {
+      hash: {
+        $ne: metadata.hash,
+      },
+    },
+    include: ["metadatas", "distances"],
+  });
+
+  let similarSimple = [];
+  for (let i = 0; i < similar.metadatas[0].length; i++) {
+    const meta = metadataList.find(
+      (m) => m.hash === similar.metadatas[0][i].hash
+    );
+    similarSimple.push({
+      hash: similar.metadatas[0][i].hash,
+      distance: similar.distances[0][i],
+      summary: meta.summary,
+      title: meta.title,
+    });
+  }
+  similarSimple = similarSimple.sort((a, b) => a.distance - b.distance);
+  let unique = new Map();
+
+  similarSimple.forEach((item) => {
+    unique.set(item.hash, item);
+  });
+  const uniqueArray = Array.from(unique.values()).sort(
+    (a, b) => a.distance - b.distance
+  );
+
+  const page = await renderToReadableStream(
+    <Entry metadata={metadata} similar={uniqueArray} />
+  );
   return new Response(page, {
     status: 200,
     headers: {

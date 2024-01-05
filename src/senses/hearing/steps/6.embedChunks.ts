@@ -2,14 +2,21 @@ import { z } from "zod";
 import { generateEmbeddings } from "../../../cognition/openai";
 import { Step, merge } from "../../../cognition/pipeline";
 import { ChunkEmbeddings, ChunkEmbeddingsSchema } from "./4.getChunkEmbeddings";
-import { embed } from "../../../memory/vector";
+import { collection, embed } from "../../../memory/vector";
 
-export const getChunkEmbeddingsStep: Step<ChunkEmbeddings, ChunkEmbeddings> = {
-  name: "getChunkEmbeddings",
+export const embedChunksStep: Step<ChunkEmbeddings, ChunkEmbeddings> = {
+  name: "embedChunks",
   inputType: ChunkEmbeddingsSchema,
   outputType: ChunkEmbeddingsSchema,
   validate: async (metadata) => {
     // TODO ensure the embeddings are in the vdb
+    const ids = metadata.audio.chunks.map(
+      (chunk) => `${metadata.hash}_${chunk.number}`
+    );
+    const result = await collection.get({ ids });
+    if (result.ids.length !== ids.length) {
+      return false;
+    }
 
     return true;
   },
@@ -21,9 +28,19 @@ export const getChunkEmbeddingsStep: Step<ChunkEmbeddings, ChunkEmbeddings> = {
       (chunk) => `${metadata.hash}_${chunk.number}`
     );
     const embeddings = metadata.audio.chunks.map((chunk) => chunk.embedding);
-    // const meta =
+    const meta = [];
 
-    // embed()
+    for (let i = 0; i < transcriptions.length; i++) {
+      meta.push({
+        hash: metadata.hash,
+        chunk: i,
+        type: metadata.type,
+        added: metadata.added,
+        created: metadata.created,
+      });
+    }
+
+    await embed(transcriptions, ids, meta, embeddings);
 
     return metadata;
   },

@@ -10,12 +10,14 @@ const embedder = new OpenAIEmbeddingFunction({
 
 export let collection: Collection;
 try {
+  console.log("creating collection");
   collection = await client.createCollection({
     name: process.env.BRAIN_NAME!,
     embeddingFunction: embedder,
     metadata: { "hnsw:space": "cosine" },
   });
-} catch {
+} catch (error) {
+  console.log(error);
   collection = await client.getCollection({
     name: process.env.BRAIN_NAME!,
     embeddingFunction: embedder,

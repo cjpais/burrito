@@ -2,8 +2,13 @@ import React from "react";
 import { z } from "zod";
 import Style from "./style";
 import dayjs from "dayjs";
+import { flatten } from "flat";
 
-const Entry = ({ metadata }: { metadata: any }) => {
+const Entry = ({ metadata, similar }: { metadata: any; similar: any }) => {
+  const flatMetadata = Object.entries(flatten(metadata)).filter(
+    ([key, value]) => !key.includes("embedding")
+  );
+
   return (
     <html>
       <head>
@@ -19,15 +24,55 @@ const Entry = ({ metadata }: { metadata: any }) => {
             CJ's Brain
           </a>
         </h1>
-        <div className="memory-holder">
-          <audio controls src={`/f/${metadata.hash}`} />
-          <b style={{ color: "#777", fontStyle: "bold" }}>
-            {dayjs(metadata.created * 1000).format("MMM D, YYYY - h:mma")}
-          </b>
-          <i style={{ fontStyle: "italic" }}>{metadata.summary}</i>
-          <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}>
-            {metadata.audio.transcript}
-          </p>
+        <div className="content-container">
+          <div className="memory-holder">
+            <h3>{metadata.title}</h3>
+            <b style={{ color: "#777", fontStyle: "bold" }}>
+              {dayjs(metadata.created * 1000).format("MMM D, YYYY - h:mma")}
+            </b>
+            <i style={{ fontStyle: "italic" }}>Summary: {metadata.summary}</i>
+            <audio controls src={`/f/${metadata.hash}`} />
+            <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}>
+              Transcript: {metadata.audio.transcript}
+            </p>
+          </div>
+          <div className="metadata-container">
+            <h1>Similar Entries</h1>
+            {similar.map((s) => (
+              <div key={s.hash}>
+                <p
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: ".777rem",
+                    color: "#777",
+                  }}
+                >
+                  <a href={`/${s.hash}`} style={{ color: "#777" }}>
+                    0x{s.hash.slice(0, 6)}
+                  </a>
+                  .....Similarity: {1 - s.distance}
+                  <h3>{s.title}</h3>
+                </p>
+                <p>{s.summary}</p>
+              </div>
+            ))}
+
+            <div>
+              <textarea style={{ width: "100%", height: "100px" }} />
+              <button>Query</button>
+            </div>
+
+            {flatMetadata.map(([key, value]) => (
+              <div
+                key={key}
+                style={{ fontFamily: "monospace", fontSize: ".6rem" }}
+              >
+                <p>
+                  {key}: {value}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </body>
     </html>

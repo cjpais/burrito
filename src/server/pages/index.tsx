@@ -21,13 +21,15 @@ const Index = ({ metadata }: { metadata: any[] }) => {
         {/* <img src="/static/cj.svg" height="50px" /> */}
         <div className="memory-holder">
           {metadata.map((m, id) => (
-            <div key={id} className="memory-holder">
-              <a
-                style={{ color: "#777", fontStyle: "bold" }}
-                href={`/${m.hash}`}
-              >
+            <div key={id} className="memory">
+              <h3>
+                <a href={`/${m.hash}`} style={{ color: "#EEE" }}>
+                  {m.title}
+                </a>
+              </h3>
+              <p style={{ color: "#777", fontStyle: "bold" }}>
                 {dayjs(m.created * 1000).format("MMM D, YYYY - h:mma")}
-              </a>
+              </p>
               {/* <p style={{ fontSize: ".75rem", fontStyle: "italic" }}>
                 {m.hash}
               </p> */}

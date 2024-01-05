@@ -18,6 +18,9 @@ const Style = () => {
           margin-top: 16px;
           text-align: center; /* Center text */
         }
+        h3 {
+          margin: 8px 0px 8px 0px;
+        }
         h6 {
           margin: 16px;
           text-align: center;
@@ -47,7 +50,20 @@ const Style = () => {
             margin: 0px 0px 0px 0px;
         }
 
+        .content-container {
+          display: flex;
+          flex-direction: row; /* Arrange children in a row */
+          gap: 20px; /* Spacing between columns */
+        }
+
+        @media (min-width: 768px) {
+          .content-container {
+            max-width: 1200px; /* Set a max width for the container if needed */
+          }
+        }
+
         .memory-holder {
+          flex: 1;
             display: flex;
             flex-direction: column;
             gap: 24px;
