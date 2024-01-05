@@ -26,7 +26,7 @@ export const ChunkMetadataSchema = z.object({
 });
 
 export const InitialAudioMetadataSchema =
-  FileMetadataSchema.and(ChunkMetadataSchema);
+  CleanAudioSchema.and(ChunkMetadataSchema);
 export type InitialAudioMetadata = z.infer<typeof InitialAudioMetadataSchema>;
 
 const chunkAudio = async (
@@ -74,11 +74,16 @@ const validateChunkAudioStep = async (
   metadata: InitialAudioMetadata
 ): Promise<boolean> => {
   const fileInfo = await getFileInfo(metadata);
-  const info = await getMediaFileInfo(fileInfo.path);
+  const info = await getMediaFileInfo(metadata.audio.cleanedFile);
   // validate duration is the same
   const duration = info.format.duration;
-  if (!duration || duration !== metadata.audio.durationSec) {
-    console.log("duration doesnt match");
+  if (
+    !duration ||
+    Math.ceil(duration) !== Math.ceil(metadata.audio.durationSec)
+  ) {
+    console.log(
+      `duration doesnt match. got ${metadata.audio.durationSec} expected ${duration}`
+    );
     return false;
   }
 
