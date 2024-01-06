@@ -4,7 +4,15 @@ import Style from "./style";
 import dayjs from "dayjs";
 import { flatten } from "flat";
 
-const Entry = ({ metadata, similar }: { metadata: any; similar: any }) => {
+const Entry = ({
+  metadata,
+  similar,
+  peersSimilar,
+}: {
+  metadata: any;
+  similar: any;
+  peersSimilar: any;
+}) => {
   const flatMetadata = Object.entries(flatten(metadata)).filter(
     ([key, value]) => !key.includes("embedding")
   );
@@ -52,6 +60,36 @@ const Entry = ({ metadata, similar }: { metadata: any; similar: any }) => {
                   .....Similarity: {1 - s.distance}
                   <h3>
                     <a style={{ color: "#EEE" }} href={`/${s.hash}`}>
+                      {s.title}
+                    </a>
+                  </h3>
+                </p>
+                <p>{s.summary}</p>
+              </div>
+            ))}
+
+            {peersSimilar.length > 0 && <h1>Peers Similar Entries</h1>}
+            {peersSimilar.map((s) => (
+              <div key={s.hash}>
+                <p
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: ".777rem",
+                    color: "#777",
+                  }}
+                >
+                  <a
+                    href={`https://${s.peer}/${s.hash}`}
+                    style={{ color: "#777" }}
+                  >
+                    {s.peer} 0x{s.hash.slice(0, 6)}
+                  </a>
+                  .....Similarity: {1 - s.distance}
+                  <h3>
+                    <a
+                      style={{ color: "#EEE" }}
+                      href={`https://${s.peer}/${s.hash}`}
+                    >
                       {s.title}
                     </a>
                   </h3>

@@ -4,6 +4,7 @@ import { renderToReadableStream } from "react-dom/server";
 import Index from "./pages";
 import Entry from "./pages/entry";
 import { collection, findSimilar } from "../memory/vector";
+import data from "../../config.json";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -46,8 +47,35 @@ export const entryHandler = async (request: Request) => {
     },
   });
 
+  const peersSimilar = await Promise.all(
+    data.peers.map(async (peer) =>
+      fetch(`https://${peer}/query/embeddings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          vectors: queryEmbeddings,
+          num: 5,
+        }),
+      })
+        .then((res) => res.json())
+        .then((j) => SimilarEntrySchema.parse(j))
+        .then((d) => ({ ...d, peer }))
+        .catch((err) => {
+          return null;
+        })
+    )
+  );
+
+  console.log(peersSimilar);
+
   const page = await renderToReadableStream(
-    <Entry metadata={metadata} similar={similar} />
+    <Entry
+      metadata={metadata}
+      similar={similar}
+      peersSimilar={peersSimilar.filter((d) => d !== null)}
+    />
   );
   return new Response(page, {
     status: 200,
@@ -134,6 +162,13 @@ const EmbeddingRequestSchema = z.object({
   num: z.number().max(50).optional(),
 });
 
+export const SimilarEntrySchema = z.object({
+  hash: z.string(),
+  distance: z.number(),
+  summary: z.string(),
+  title: z.string(),
+});
+
 export const handleEmbeddingsRequest = async (request: Request) => {
   if (request.method !== "POST")
     return new Response("Method not allowed", { status: 405 });
@@ -143,15 +178,8 @@ export const handleEmbeddingsRequest = async (request: Request) => {
     const { vectors, num } = EmbeddingRequestSchema.parse(body);
 
     const similar = await findSimilar(vectors, num || 5);
-    const response = {
-      similar,
-      brain: {
-        version: process.env.BRAIN_VERSION,
-        name: process.env.BRAIN_NAME,
-      },
-    };
 
-    return new Response(JSON.stringify(response), {
+    return new Response(JSON.stringify(similar), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
