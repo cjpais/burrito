@@ -7,10 +7,11 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export const generateCompletion = async (
   systemPrompt: string,
   message: string,
-  schema?: any
+  schema?: any,
+  model: string = "gpt-3.5-turbo-1106"
 ) => {
   const result = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo-1106",
+    model: model,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: message },
