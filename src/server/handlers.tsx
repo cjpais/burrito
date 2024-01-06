@@ -47,26 +47,31 @@ export const entryHandler = async (request: Request) => {
     },
   });
 
-  const peersSimilar = await Promise.all(
-    data.peers.map(async (peer) =>
-      fetch(`https://${peer}/query/embeddings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          vectors: queryEmbeddings,
-          num: 5,
-        }),
-      })
-        .then((res) => res.json())
-        .then((j) => SimilarEntrySchema.parse(j))
-        .then((d) => ({ ...d, peer }))
-        .catch((err) => {
-          return null;
-        })
-    )
-  );
+  const peersSimilar = [
+    ...(
+      await Promise.all(
+        data.peers.map(async (peer) =>
+          fetch(`https://${peer}/query/embeddings`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              vectors: queryEmbeddings,
+              num: 5,
+            }),
+          })
+            .then((res) => res.json())
+            .then((j) => EmbeddingResponseSchema.parse(j))
+            .then((d) => d.map((s) => ({ ...s, peer })))
+            .catch((err) => {
+              console.log(err);
+              return null;
+            })
+        )
+      )
+    ).flat(),
+  ];
 
   console.log(peersSimilar);
 
@@ -168,6 +173,8 @@ export const SimilarEntrySchema = z.object({
   summary: z.string(),
   title: z.string(),
 });
+
+export const EmbeddingResponseSchema = z.array(SimilarEntrySchema);
 
 export const handleEmbeddingsRequest = async (request: Request) => {
   if (request.method !== "POST")
