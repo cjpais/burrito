@@ -4,6 +4,7 @@
   "type": "module",
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/mustache": "^4.2.5",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "bun-types": "latest"
@@ -21,8 +22,13 @@
     "dayjs": "^1.11.10",
     "flat": "^6.0.1",
     "fluent-ffmpeg": "^2.1.2",
+    "js-tiktoken": "^1.0.8",
+    "mathjs": "^12.2.1",
     "mime": "^4.0.0",
+    "ml-distance": "^4.0.1",
+    "mustache": "^4.2.0",
     "openai": "^4.21.0",
+    "quicktype-core": "^23.0.81",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zod": "^3.22.4"
