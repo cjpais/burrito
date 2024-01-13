@@ -5,6 +5,7 @@ import { processReading } from "../senses/reading";
 import {
   entryHandler,
   fileHandler,
+  handleDataRequest,
   handleEmbeddingsRequest,
   indexHandler,
   metadataHandler,
@@ -82,6 +83,13 @@ const runPipelineOnAllFiles = async () => {
     }
     return acc;
   }, []);
+
+  // write this file to disk
+  console.log("WRITING METADATA LIST");
+  await Bun.write(
+    `${process.env.BRAIN_STORAGE_ROOT!}/metadata.json`,
+    JSON.stringify(metadataList)
+  );
 };
 
 type RouteHandler = (request: Request) => Response | Promise<Response>;
@@ -98,12 +106,12 @@ const routes: Routes = {
   "^/store$": handleStoreRequest,
   "^/query$": handleQueryRequest,
   "^/query/embeddings$": handleEmbeddingsRequest,
+  "^/query/data$": handleDataRequest,
 };
 
 export const brainServer = async () => {
   // TODO go through all the files and make sure they
   // have the right metadata according to their type
-  runPipelineOnAllFiles();
 
   Bun.serve({
     port: process.env.PORT ?? 3000,
@@ -118,3 +126,5 @@ export const brainServer = async () => {
     },
   });
 };
+
+runPipelineOnAllFiles();

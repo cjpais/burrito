@@ -3,8 +3,10 @@ import { metadataList } from ".";
 import { renderToReadableStream } from "react-dom/server";
 import Index from "./pages";
 import Entry from "./pages/entry";
-import { collection, findSimilar } from "../memory/vector";
+import { findSimilar } from "../memory/vector";
 import data from "../../config.json";
+import { QueryRequestSchema } from "./handlers/query";
+import { executeQuery } from "../tools/jsvm";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -173,6 +175,29 @@ export const SimilarEntrySchema = z.object({
   summary: z.string(),
   title: z.string(),
 });
+
+export const handleDataRequest = async (request: Request) => {
+  // TODO this will be another tool for the brain to use eventually.
+
+  if (request.method !== "POST")
+    return new Response("Method not allowed", { status: 405 });
+
+  try {
+    const body = await request.json();
+    const { query } = QueryRequestSchema.parse(body);
+
+    const result = await executeQuery(query);
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    return new Response(`Bad request.\n\n Error: ${error}`, { status: 400 });
+  }
+};
 
 export const EmbeddingResponseSchema = z.array(SimilarEntrySchema);
 
