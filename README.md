@@ -1,4 +1,4 @@
-# brain
+# burrito
 
 _Note: This is a work in progress_
 
