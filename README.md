@@ -1,9 +1,9 @@
-# brain
+# burrito
 
 _Note: This is a work in progress_
 
 This is an experiment to play with personal data in a friendly and easy way.
-The core idea is to be able to ask the `brain` any query in natural language
+The core idea is to be able to ask the `burrito` any query in natural language
 and return revelevant information. This could be `json` for building a webpage
 or `text`.
 
@@ -12,8 +12,8 @@ and experiementation.
 
 The goal is to build a playground for personal data and find insight into self.
 That means it should be able to accept all kinds of data sources and have them
-be easily added to the `brain`. The first such sources are pure files as they
-are the simplest to work with. I intend for the `brain` to consume API's
+be easily added to the `burrito`. The first such sources are pure files as they
+are the simplest to work with. I intend for the `burrito` to consume API's
 and data sources like Spotify, Twitter, Discord, Email, and Messages.
 
 How these data sources easily integrate into storage and retrieval is unknown
@@ -30,7 +30,7 @@ effective for storing that kind of data.
 `retrieval` - This is how data will be retrieved. Other applications will primarily
 be interacting with this module
 
-On `brain` start, the first thing that happens is that data is loaded from the filesystem
+On `burrito` start, the first thing that happens is that data is loaded from the filesystem
 and verified for it's metadata integrity. If the metadata is not up to date, it will
 kick off the data processing pipeline for that `type`
 
