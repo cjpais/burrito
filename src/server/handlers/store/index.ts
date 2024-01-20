@@ -1,3 +1,4 @@
+import { validateAuthToken } from "../..";
 import { getMediaFileInfo } from "../../../external/ffmpeg";
 import {
   FileInfo,
@@ -29,6 +30,10 @@ export const handleStoreRequest = async (request: Request) => {
 
   if (request.method !== "POST")
     return new Response("Method not allowed", { status: 405 });
+
+  if (!validateAuthToken(request)) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   const formData = await request.formData();
   console.log("form data", formData);

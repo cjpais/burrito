@@ -3,10 +3,7 @@ import fs from "fs";
 
 // TODO should this be in 'understanding' or something? TBD
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const together = new OpenAI({
-  apiKey: process.env.TOGETHER_API_KEY,
-  baseURL: "https://api.together.xyz/v1",
-});
+
 const local = new OpenAI({
   apiKey: "sk-no-key",
   baseURL: "http://192.168.1.210:8080/v1",
@@ -26,28 +23,6 @@ export const generateLocalCompletion = async (
     max_tokens: 32000,
     // stop: ["[/INST]", "</s>"],
     temperature: 0.3,
-  });
-
-  const response = result.choices[0].message.content;
-
-  return response;
-};
-
-export const generateTogetherCompletion = async (
-  systemPrompt: string,
-  message: string,
-  model: string = "mistralai/Mixtral-8x7B-Instruct-v0.1"
-) => {
-  const result = await together.chat.completions.create({
-    model: model,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: message },
-    ],
-    max_tokens: 3000,
-    // stop: ["[/INST]", "</s>"],
-    temperature: 0.3,
-    top_p: 0.7,
   });
 
   const response = result.choices[0].message.content;

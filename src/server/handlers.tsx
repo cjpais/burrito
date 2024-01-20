@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { metadataList } from ".";
+import { metadataList, validateAuthToken } from ".";
 import { renderToReadableStream } from "react-dom/server";
 import Index from "./pages";
 import Entry from "./pages/entry";
@@ -181,6 +181,10 @@ export const handleDataRequest = async (request: Request) => {
 
   if (request.method !== "POST")
     return new Response("Method not allowed", { status: 405 });
+
+  if (!validateAuthToken(request)) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   try {
     const body = await request.json();

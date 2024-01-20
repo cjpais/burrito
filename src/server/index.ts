@@ -109,6 +109,16 @@ const routes: Routes = {
   "^/query/data$": handleDataRequest,
 };
 
+export const validateAuthToken = (req: Request) => {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
+
+  const token = authHeader.split(" ")[1];
+  if (token !== process.env.AUTH_SECRET) return false;
+
+  return true;
+};
+
 export const brainServer = async () => {
   // TODO go through all the files and make sure they
   // have the right metadata according to their type

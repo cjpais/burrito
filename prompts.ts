@@ -18,7 +18,7 @@ Output: \`\`\`json
 \`\`\`
 
 Example 3:
-Question: How do I express my creativity?
+Question: How have I expresssed my creativity october 2 - 9?
 Output: \`\`\`json
 ["creativity", "innovation", "artistic expression", "imagination", "originality", "creative pursuits", "art", "invention", "inspiration"]
 \`\`\`
