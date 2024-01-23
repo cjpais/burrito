@@ -44,7 +44,7 @@ export const processPipeline = async <Input>(
   steps: Step<any, any>[],
   tag?: string
 ): Promise<any> => {
-  let output = input;
+  let output = JSON.parse(JSON.stringify(input));
 
   for (const step of steps) {
     const parsedInput = step.inputType.safeParse(output);
