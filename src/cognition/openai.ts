@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import fs from "fs";
+import { FileMetadata, getFileInfo } from "../memory/files";
 
 // TODO should this be in 'understanding' or something? TBD
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -94,4 +95,45 @@ export const generateTranscriptions = async (files: string[]) => {
   return transcriptions
     .sort((a, b) => a.number - b.number)
     .map((t) => t.transcription);
+};
+
+export const generateImageCompletion = async ({
+  systemPrompt,
+  prompt,
+  image,
+  maxTokens,
+}: {
+  systemPrompt?: string;
+  prompt?: string;
+  image: FileMetadata;
+  maxTokens?: number;
+}) => {
+  const fileInfo = await getFileInfo(image);
+  const buf = await Bun.file(fileInfo.path).arrayBuffer();
+  const b64 = Buffer.from(buf).toString("base64");
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4-vision-preview",
+    messages: [
+      {
+        role: "system",
+        content: systemPrompt || "You are a helpful assistant.",
+      },
+      {
+        role: "user",
+        content: [
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:${fileInfo.mime};base64,${b64}`,
+            },
+          },
+          { type: "text", text: prompt || "caption this image" },
+        ],
+      },
+    ],
+    max_tokens: maxTokens || 500,
+  });
+
+  return response.choices[0].message.content;
 };

@@ -19,7 +19,7 @@ const Style = () => {
           text-align: center; /* Center text */
         }
         h3 {
-          margin: 8px 0px 8px 0px;
+          margin: 4px 0px 8px 0px;
         }
         h6 {
           margin: 16px;

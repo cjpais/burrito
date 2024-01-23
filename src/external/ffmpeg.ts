@@ -72,3 +72,26 @@ export const cleanAudio = async (
       .save(output);
   });
 };
+
+export const compressImage = async (
+  input: string,
+  output: string,
+  size?: number
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(input)
+      .complexFilter([
+        `scale='min(1024\\,iw)':min(1024\\,ih)':force_original_aspect_ratio=decrease`,
+      ])
+      .output(output)
+      .on("end", () => {
+        console.log(`Image compressed and saved to ${output}`);
+        resolve();
+      })
+      .on("error", (err) => {
+        console.error(`An error occurred: ${err.message}`);
+        reject(err);
+      })
+      .run();
+  });
+};
