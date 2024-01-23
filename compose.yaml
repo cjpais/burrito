@@ -1,0 +1,41 @@
+version: "3.9"
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    environment:
+      - IS_PERSISTENT=TRUE
+    volumes:
+      - chroma-data:/chroma/chroma/
+    networks:
+      - net
+    restart: always
+
+  burrito:
+    image: docker.io/library/burrito-server
+    env_file:
+      - .env
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - burrito-data:/data
+    networks:
+      - net
+    depends_on:
+      - chromadb
+    command: /bin/sh -c "sleep 8; ./server"
+    restart: always
+
+volumes:
+  chroma-data:
+    driver: local
+  burrito-data:
+    driver: local
+    # driver_opts: maybe have an optional env var for exactly where you want it on the host?
+    #   o: bind
+    #   type: none
+    #   device: /path/to/files/on/host
