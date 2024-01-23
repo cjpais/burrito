@@ -100,6 +100,13 @@ export const handleStoreRequest = async (request: Request) => {
         ...metadata,
         ...JSON.parse(await Bun.file(`${fileInfo.dir}/metadata.json`).text()),
       };
+
+      return new Response(JSON.stringify(metadata), {
+        status: 200,
+        headers: {
+          contentType: "application/json",
+        },
+      });
     }
 
     const parsedMetadata: FileMetadata & GenericObject =
