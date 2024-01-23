@@ -45,13 +45,14 @@ export const cleanAudio = async (
   input: string,
   output: string
 ): Promise<void> => {
+  // TODO set low pass dependent on sample rate
   return new Promise((resolve, reject) => {
     ffmpeg(input)
       .audioFilter(
         "silenceremove=start_periods=1:stop_periods=-1:stop_duration=5:start_threshold=-45dB:stop_threshold=-45dB"
       )
-      .audioFilter("highpass=f=100")
-      .audioFilter("lowpass=f=15000")
+      .audioFilter("highpass=f=80")
+      .audioFilter("lowpass=f=8000")
       .audioFilter("acompressor")
       .audioFilter("loudnorm=I=-16:TP=-1.5:LRA=11")
 
