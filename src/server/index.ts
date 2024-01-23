@@ -122,9 +122,10 @@ export const validateAuthToken = (req: Request) => {
 export const brainServer = async () => {
   // TODO go through all the files and make sure they
   // have the right metadata according to their type
+  const port = process.env.PORT ?? 8000;
 
   Bun.serve({
-    port: process.env.PORT ?? 3000,
+    port: port,
     fetch(request) {
       const url = new URL(request.url);
 
@@ -135,6 +136,8 @@ export const brainServer = async () => {
       return notFoundHandler(request);
     },
   });
+
+  console.log(`Server running at http://localhost:${port}`);
 };
 
 runPipelineOnAllFiles();
