@@ -8,7 +8,9 @@ import z from "zod";
 import { metadataList } from "../server";
 
 export const Embedding = z.array(z.number());
-export const client = new ChromaClient();
+export const client = new ChromaClient({
+  path: process.env.CHROMA_URL || "http://localhost:8000",
+});
 
 const embedder = new OpenAIEmbeddingFunction({
   openai_api_key: process.env.OPENAI_API_KEY!,
