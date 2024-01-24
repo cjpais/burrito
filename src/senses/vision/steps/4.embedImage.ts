@@ -20,6 +20,10 @@ export const embedImageStep: Step<Input, Output> = {
   inputType: InputSchema,
   outputType: OutputSchema,
   validate: async (metadata) => {
+    // return false;
+    // remove existing embeddings and update them
+    // collection.delete({ ids: [metadata.hash] });
+
     const idResult = await collection.get({ ids: [metadata.hash] });
     if (idResult.ids.length !== 1) {
       return false;

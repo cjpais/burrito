@@ -23,6 +23,7 @@ export const captionImageStep: Step<FileMetadata, Output> = {
   inputType: FileMetadataSchema,
   outputType: OutputSchema,
   validate: async (metadata) => {
+    // return false;
     return true;
   },
   run: async (metadata) => {

@@ -18,12 +18,13 @@ export const titleImageStep: Step<Input, Output> = {
   name: "titleImage",
   inputType: InputSchema,
   outputType: OutputSchema,
+  validate: async (metadata) => {
+    // return false;
+    return true;
+  },
   run: async (metadata) => {
-    const additionalPrompt = metadata.location
-      ? `the photo was taken in ${metadata.location}`
-      : "";
     const title = await generateCompletion(
-      `you are excellent at writing titles. proivide a singular title for the text. ${additionalPrompt}`,
+      `you are excellent at writing titles. proivide a singular title for the text`,
       metadata.caption
     );
 
