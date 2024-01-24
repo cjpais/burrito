@@ -5,7 +5,7 @@ const Style = () => {
     <style>{`
         body {
           margin: 0;
-          padding: 16px 0px 0px 0px;
+          padding: 16px 2rem;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -26,12 +26,9 @@ const Style = () => {
           text-align: center;
         }
         div {
-          width: 90%; /* Responsive width */
-          max-width: 600px; /* Maximum width */
           margin: 10px auto; /* Centering and spacing between elements */
         }
         img,
-        audio,
         video {
           width: 100%; /* Full width of the container */
         }
@@ -48,26 +45,48 @@ const Style = () => {
         p {
             padding: 0px 0px 0px 0px;
             margin: 0px 0px 0px 0px;
+            line-height: 1.35;
         }
 
         .content-container {
           display: flex;
-          flex-direction: row; /* Arrange children in a row */
-          gap: 20px; /* Spacing between columns */
+          flex-direction: column; 
+          gap: 16px; /* Spacing between columns */
+          max-width: 640px;
         }
-
-        @media (min-width: 768px) {
-          .content-container {
-            max-width: 1200px; /* Set a max width for the container if needed */
-          }
+        
+        .entry-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 768px;
+            gap: 24px;
         }
 
         .memory-holder {
-          flex: 1;
             display: flex;
             flex-direction: column;
+            max-width: 600px;
             gap: 24px;
         }
+
+        .similar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: px;
+        }
+
+        @media (min-width: 1280px) {
+          .content-container {
+            flex-direction: row; /* Arrange children in a row */
+            max-width: 1200px; /* Set a max width for the container if needed */
+            gap: 64px; /* Spacing between columns */
+          }
+          .audio {
+            width: 100%;
+          }
+        }
+
       
         .memory {
             display: flex;
@@ -79,6 +98,14 @@ const Style = () => {
           font-family: monospace;
           font-size: 0.64rem;
           text-align: center;
+          text-overflow: ellipsis;
+        }
+
+        .truncate {
+          display: -webkit-box;
+          -webkit-line-clamp: 3; /* Number of lines you want to display */
+          -webkit-box-orient: vertical;  
+          overflow: hidden;
           text-overflow: ellipsis;
         }
       `}</style>
