@@ -38,65 +38,78 @@ const Entry = ({
             <b style={{ color: "#777", fontStyle: "bold" }}>
               {dayjs(metadata.created * 1000).format("MMM D, YYYY - h:mma")}
             </b>
-            <i style={{ fontStyle: "italic" }}>Summary: {metadata.summary}</i>
-            <audio controls src={`/f/${metadata.hash}`} />
+            {metadata.location && (
+              <b style={{ color: "#777", fontStyle: "bold" }}>
+                {metadata.location}
+              </b>
+            )}
+            {metadata.summary && (
+              <i style={{ fontStyle: "italic" }}>Summary: {metadata.summary}</i>
+            )}
+            {metadata.caption && <p>Caption: {metadata.caption}</p>}
+            {metadata.type === "image" && <img src={`/f/${metadata.hash}`} />}
+            {metadata.audio && <audio controls src={`/f/${metadata.hash}`} />}
             {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
-            <p>Transcript: {metadata.audio.transcript}</p>
+            {metadata.audio && <p>Transcript: {metadata.audio.transcript}</p>}
           </div>
           <div className="metadata-container">
             <h1>Similar Entries</h1>
-            {similar.map((s) => (
-              <div key={s.hash}>
-                <p
-                  style={{
-                    fontFamily: "monospace",
-                    fontSize: ".777rem",
-                    color: "#777",
-                  }}
-                >
-                  <a href={`/${s.hash}`} style={{ color: "#777" }}>
-                    0x{s.hash.slice(0, 6)}
-                  </a>
-                  .....Similarity: {1 - s.distance}
-                  <h3>
-                    <a style={{ color: "#EEE" }} href={`/${s.hash}`}>
-                      {s.title}
-                    </a>
-                  </h3>
-                </p>
-                <p>{s.summary}</p>
-              </div>
-            ))}
-
-            {peersSimilar.length > 0 && <h1>Peers Similar Entries</h1>}
-            {peersSimilar.map((s) => (
-              <div key={s.hash}>
-                <p
-                  style={{
-                    fontFamily: "monospace",
-                    fontSize: ".777rem",
-                    color: "#777",
-                  }}
-                >
-                  <a
-                    href={`https://${s.peer}/${s.hash}`}
-                    style={{ color: "#777" }}
+            {similar &&
+              similar.map((s) => (
+                <div key={s.hash}>
+                  <p
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: ".777rem",
+                      color: "#777",
+                    }}
                   >
-                    {s.peer} 0x{s.hash.slice(0, 6)}
-                  </a>
-                  .....Similarity: {1 - s.distance}
-                  <h3>
-                    <a
-                      style={{ color: "#EEE" }}
-                      href={`https://${s.peer}/${s.hash}`}
-                    >
-                      {s.title}
+                    <a href={`/${s.hash}`} style={{ color: "#777" }}>
+                      0x{s.hash.slice(0, 6)}
                     </a>
-                  </h3>
-                </p>
-                <p>{s.summary}</p>
-              </div>
-            ))}
+                    .....Similarity: {1 - s.distance}
+                    <h3>
+                      <a style={{ color: "#EEE" }} href={`/${s.hash}`}>
+                        {s.title}
+                      </a>
+                    </h3>
+                  </p>
+                  <p>{s.summary}</p>
+                </div>
+              ))}
+
+            {peersSimilar && peersSimilar.length > 0 && (
+              <h1>Peers Similar Entries</h1>
+            )}
+            {peersSimilar &&
+              peersSimilar.map((s) => (
+                <div key={s.hash}>
+                  <p
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: ".777rem",
+                      color: "#777",
+                    }}
+                  >
+                    <a
+                      href={`https://${s.peer}/${s.hash}`}
+                      style={{ color: "#777" }}
+                    >
+                      {s.peer} 0x{s.hash.slice(0, 6)}
+                    </a>
+                    .....Similarity: {1 - s.distance}
+                    <h3>
+                      <a
+                        style={{ color: "#EEE" }}
+                        href={`https://${s.peer}/${s.hash}`}
+                      >
+                        {s.title}
+                      </a>
+                    </h3>
+                  </p>
+                  <p>{s.summary}</p>
+                </div>
+              ))}
 
             <div>
               <textarea style={{ width: "100%", height: "100px" }} />

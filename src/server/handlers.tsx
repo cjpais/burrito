@@ -38,50 +38,61 @@ export const entryHandler = async (request: Request) => {
   const metadata = metadataList.find((m) => m.hash === hash);
   if (!metadata) return notFoundHandler(request);
 
-  const queryEmbeddings = metadata.audio.chunks.map(
-    (chunk: any) => chunk.embedding
-  );
+  let queryEmbeddings: null | number[][] = null;
+  let similar:
+    | {
+        hash: string;
+        distance: number;
+        summary: string;
+        title: string;
+      }[]
+    | null = null;
+  let peersSimilar: any[] | null = null;
 
-  // get similar docs
-  const similar = await findSimilar(queryEmbeddings, 5, {
-    hash: {
-      $ne: metadata.hash,
-    },
-  });
+  if (metadata.audio && metadata.audio.chunks) {
+    queryEmbeddings = metadata.audio.chunks.map(
+      (chunk: any) => chunk.embedding
+    );
 
-  const peersSimilar = [
-    ...(
-      await Promise.all(
-        data.peers.map(async (peer) =>
-          fetch(`https://${peer}/query/embeddings`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              vectors: queryEmbeddings,
-              num: 5,
-            }),
-          })
-            .then((res) => res.json())
-            .then((j) => EmbeddingResponseSchema.parse(j))
-            .then((d) => d.map((s) => ({ ...s, peer })))
-            .catch((err) => {
-              console.log(err);
-              return null;
+    // get similar docs
+    similar = await findSimilar(queryEmbeddings, 5, {
+      hash: {
+        $ne: metadata.hash,
+      },
+    });
+
+    peersSimilar = [
+      ...(
+        await Promise.all(
+          data.peers.map(async (peer) =>
+            fetch(`https://${peer}/query/embeddings`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                vectors: queryEmbeddings,
+                num: 5,
+              }),
             })
+              .then((res) => res.json())
+              .then((j) => EmbeddingResponseSchema.parse(j))
+              .then((d) => d.map((s) => ({ ...s, peer })))
+              .catch((err) => {
+                console.log(err);
+                return null;
+              })
+          )
         )
-      )
-    ).flat(),
-  ];
-
-  console.log(peersSimilar);
+      ).flat(),
+    ];
+  }
 
   const page = await renderToReadableStream(
     <Entry
       metadata={metadata}
       similar={similar}
-      peersSimilar={peersSimilar.filter((d) => d !== null)}
+      peersSimilar={peersSimilar && peersSimilar.filter((d) => d !== null)}
     />
   );
   return new Response(page, {
