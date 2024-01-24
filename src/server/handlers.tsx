@@ -38,7 +38,7 @@ export const entryHandler = async (request: Request) => {
   const metadata = metadataList.find((m) => m.hash === hash);
   if (!metadata) return notFoundHandler(request);
 
-  let queryEmbeddings: null | number[][] = null;
+  let queryEmbeddings: null | number[][] = [metadata.embedding];
   let similar:
     | {
         hash: string;
@@ -49,17 +49,15 @@ export const entryHandler = async (request: Request) => {
     | null = null;
   let peersSimilar: any[] | null = null;
 
-  if (metadata.audio && metadata.audio.chunks) {
-    queryEmbeddings = metadata.audio.chunks.map(
-      (chunk: any) => chunk.embedding
-    );
-
-    // get similar docs
+  // get similar docs
+  if (queryEmbeddings) {
     similar = await findSimilar(queryEmbeddings, 5, {
       hash: {
         $ne: metadata.hash,
       },
     });
+
+    // console.log(similar);
 
     peersSimilar = [
       ...(
@@ -91,8 +89,11 @@ export const entryHandler = async (request: Request) => {
   const page = await renderToReadableStream(
     <Entry
       metadata={metadata}
-      similar={similar}
-      peersSimilar={peersSimilar && peersSimilar.filter((d) => d !== null)}
+      similar={similar?.filter((d) => d.distance < 0.21)}
+      peersSimilar={
+        peersSimilar &&
+        peersSimilar.filter((d) => d !== null && d.distance < 0.25)
+      }
     />
   );
   return new Response(page, {

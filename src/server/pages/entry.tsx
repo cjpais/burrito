@@ -113,7 +113,14 @@ const Entry = ({
                       </a>
                     </h3>
                   </p>
-                  <p className="truncate">{s.summary}</p>
+                  {s.summary && <p className="truncate">{s.summary}</p>}
+                  {s.type === "image" && (
+                    <img
+                      loading="lazy"
+                      alt={s.description}
+                      src={`/f/${s.hash}`}
+                    />
+                  )}
                 </div>
               ))}
 

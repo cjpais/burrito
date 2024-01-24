@@ -20,15 +20,29 @@ export const embedImageStep: Step<Input, Output> = {
   inputType: InputSchema,
   outputType: OutputSchema,
   validate: async (metadata) => {
-    const result = await collection.get({ ids: [metadata.hash] });
-    if (result.ids.length !== 1) {
+    const idResult = await collection.get({ ids: [metadata.hash] });
+    if (idResult.ids.length !== 1) {
       return false;
     }
+
+    const metadataResult = await collection.get({
+      where: { hash: metadata.hash },
+    });
+    if (metadataResult.ids.length !== 1) {
+      return false;
+    }
+
     return true;
   },
   run: async (metadata) => {
+    // TODO remove the concept of "image" from the embedding
     const embedding = await generateEmbeddings([metadata.description]);
-    await embed([metadata.description], [metadata.hash], [{}], embedding);
+    await embed(
+      [metadata.description],
+      [metadata.hash],
+      [{ hash: metadata.hash }],
+      embedding
+    );
 
     return {
       ...metadata,
