@@ -7,9 +7,13 @@ import {
   getFileInfo,
 } from "../../../memory/files";
 import { generateImageCompletion } from "../../../cognition/openai";
+import { DESCRIBE_IMAGE_PROMPT, ImageDescription } from "../../../../prompts";
+import { extractJSON } from "../../../cognition";
 
-const OutputSchema = z.object({
+const OutputSchema = FileMetadataSchema.extend({
   caption: z.string(),
+  description: z.string(),
+  extractedText: z.string().or(z.null()).optional(),
 });
 
 type Output = z.infer<typeof OutputSchema>;
@@ -23,10 +27,21 @@ export const captionImageStep: Step<FileMetadata, Output> = {
   },
   run: async (metadata) => {
     const resp = await generateImageCompletion({
+      prompt: DESCRIBE_IMAGE_PROMPT,
       image: metadata,
     });
 
-    metadata.caption = resp;
-    return metadata;
+    // if failure, just return metadata as is (need to mark as failed)
+    if (!resp) return metadata;
+    const json = extractJSON<ImageDescription>(resp);
+    if (!json) return metadata; // TODO retry here.
+
+    const output = {
+      ...metadata,
+      caption: json.caption,
+      description: json.description,
+      extractedText: json.extractedText,
+    };
+    return output;
   },
 };

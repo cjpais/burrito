@@ -7,7 +7,7 @@ const InputSchema = z.object({
   location: z.string().optional(),
 });
 
-const OutputSchema = z.object({
+const OutputSchema = InputSchema.extend({
   title: z.string(),
 });
 
@@ -22,10 +22,17 @@ export const titleImageStep: Step<Input, Output> = {
     const additionalPrompt = metadata.location
       ? `the photo was taken in ${metadata.location}`
       : "";
-    metadata.title = await generateCompletion(
+    const title = await generateCompletion(
       `you are excellent at writing titles. proivide a singular title for the text. ${additionalPrompt}`,
       metadata.caption
     );
-    return metadata;
+
+    if (!title) return metadata;
+
+    const output = {
+      ...metadata,
+      title,
+    };
+    return output;
   },
 };

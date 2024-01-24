@@ -132,7 +132,7 @@ export const generateImageCompletion = async ({
         ],
       },
     ],
-    max_tokens: maxTokens || 500,
+    max_tokens: maxTokens || 1500,
   });
 
   return response.choices[0].message.content;

@@ -25,9 +25,6 @@ const Style = () => {
           margin: 16px;
           text-align: center;
         }
-        div {
-          margin: 10px auto; /* Centering and spacing between elements */
-        }
         img,
         video {
           width: 100%; /* Full width of the container */

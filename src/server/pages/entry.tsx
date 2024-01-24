@@ -3,6 +3,28 @@ import { z } from "zod";
 import Style from "./style";
 import dayjs from "dayjs";
 import { flatten } from "flat";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const processMarkdown = (markdownText: string) => {
+  // Regular expression to match code blocks and preformatted text
+  const codeBlockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
+
+  // Function to replace single newlines with double newlines outside of code blocks
+  return markdownText
+    .split(codeBlockRegex)
+    .map((segment, index) => {
+      // Odd indices are code blocks, even indices are normal text
+      if (index % 2 === 0) {
+        // Replace single newlines with double newlines in normal text
+        return segment.replace(/\n(?! *\n)/g, "\n\n");
+      } else {
+        // Keep code blocks unchanged
+        return segment;
+      }
+    })
+    .join("");
+};
 
 const Entry = ({
   metadata,
@@ -47,10 +69,27 @@ const Entry = ({
               <i style={{ fontStyle: "italic" }}>Summary: {metadata.summary}</i>
             )}
             {metadata.caption && <p>Caption: {metadata.caption}</p>}
-            {metadata.type === "image" && <img src={`/f/${metadata.hash}`} />}
+            {metadata.description && <i>Description: {metadata.description}</i>}
+            {metadata.type === "image" && (
+              <img
+                loading="lazy"
+                alt={metadata.description}
+                src={`/f/${metadata.hash}`}
+              />
+            )}
             {metadata.audio && <audio controls src={`/f/${metadata.hash}`} />}
             {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
             {metadata.audio && <p>Transcript: {metadata.audio.transcript}</p>}
+            {metadata.extractedText && (
+              <>
+                <p>Extracted Text</p>
+                <div>
+                  <Markdown remarkPlugins={[remarkGfm]}>
+                    {processMarkdown(metadata.extractedText)}
+                  </Markdown>
+                </div>
+              </>
+            )}
           </div>
           <div className="similar">
             <h2>Similar Entries</h2>
