@@ -80,10 +80,9 @@ export const compressImage = async (
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     ffmpeg(input)
-      .complexFilter([
-        `scale='min(1024\\,iw)':min(1024\\,ih)':force_original_aspect_ratio=decrease`,
-      ])
       .output(output)
+      .size("1024x?") // Scale the image to a width of 1024 and keep the aspect ratio
+      .withOutputOption("-q:v 2") // Set the quality factor for the output
       .on("end", () => {
         console.log(`Image compressed and saved to ${output}`);
         resolve();

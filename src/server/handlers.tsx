@@ -7,6 +7,7 @@ import { findSimilar } from "../memory/vector";
 import data from "../../config.json";
 import { QueryRequestSchema } from "./handlers/query";
 import { executeQuery } from "../tools/jsvm";
+import fs from "fs";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -89,10 +90,10 @@ export const entryHandler = async (request: Request) => {
   const page = await renderToReadableStream(
     <Entry
       metadata={metadata}
-      similar={similar?.filter((d) => d.distance < 0.21)}
+      similar={similar?.filter((d) => d.distance < 0.24)}
       peersSimilar={
         peersSimilar &&
-        peersSimilar.filter((d) => d !== null && d.distance < 0.25)
+        peersSimilar.filter((d) => d !== null && d.distance < 0.24)
       }
     />
   );
@@ -116,6 +117,34 @@ export const metadataHandler = async (request: Request) => {
       status: 200,
       headers: {
         contentType: "application/json",
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return notFoundHandler(request);
+  }
+};
+
+export const imageHandler = async (request: Request) => {
+  try {
+    const url = new URL(request.url);
+    const hash = decodeURIComponent(url.pathname).split("/").pop();
+    const metadata = await Bun.file(
+      `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`
+    ).json();
+
+    // this assumes the pipeline has run correctly and `compressed.jpg` exists
+    if (metadata.type !== "image") {
+      return notFoundHandler(request);
+    }
+    const compressedImage = await Bun.file(
+      `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/compressed.jpg`
+    );
+
+    return new Response(compressedImage, {
+      status: 200,
+      headers: {
+        "Content-Type": metadata.type,
       },
     });
   } catch (error) {

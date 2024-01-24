@@ -74,7 +74,7 @@ const Entry = ({
               <img
                 loading="lazy"
                 alt={metadata.description}
-                src={`/f/${metadata.hash}`}
+                src={`/i/${metadata.hash}`}
               />
             )}
             {metadata.audio && <audio controls src={`/f/${metadata.hash}`} />}
@@ -118,12 +118,14 @@ const Entry = ({
                     <img
                       loading="lazy"
                       alt={s.description}
-                      src={`/f/${s.hash}`}
+                      src={`/i/${s.hash}`}
                     />
                   )}
                 </div>
               ))}
+          </div>
 
+          <div className="similar">
             {peersSimilar && peersSimilar.length > 0 && (
               <h2>Peers Similar Entries</h2>
             )}

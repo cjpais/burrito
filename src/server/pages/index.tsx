@@ -36,7 +36,7 @@ const Index = ({ metadata }: { metadata: any[] }) => {
                 </p>
               )}
               {m.type === "image" && (
-                <img loading="lazy" src={`/f/${m.hash}`} alt={m.description} />
+                <img loading="lazy" src={`/i/${m.hash}`} alt={m.description} />
               )}
               {/* <p style={{ fontSize: ".75rem", fontStyle: "italic" }}>
                 {m.hash}
