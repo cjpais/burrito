@@ -33,8 +33,8 @@ const Entry = ({
           </a>
         </h1>
         <div className="content-container">
-          <div className="memory-holder">
-            <h3>{metadata.title}</h3>
+          <div className="entry-container">
+            <h2>{metadata.title}</h2>
             <b style={{ color: "#777", fontStyle: "bold" }}>
               {dayjs(metadata.created * 1000).format("MMM D, YYYY - h:mma")}
             </b>
@@ -52,8 +52,8 @@ const Entry = ({
             {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
             {metadata.audio && <p>Transcript: {metadata.audio.transcript}</p>}
           </div>
-          <div className="metadata-container">
-            <h1>Similar Entries</h1>
+          <div className="similar">
+            <h2>Similar Entries</h2>
             {similar &&
               similar.map((s) => (
                 <div key={s.hash}>
@@ -74,12 +74,12 @@ const Entry = ({
                       </a>
                     </h3>
                   </p>
-                  <p>{s.summary}</p>
+                  <p className="truncate">{s.summary}</p>
                 </div>
               ))}
 
             {peersSimilar && peersSimilar.length > 0 && (
-              <h1>Peers Similar Entries</h1>
+              <h2>Peers Similar Entries</h2>
             )}
             {peersSimilar &&
               peersSimilar.map((s) => (
@@ -107,11 +107,11 @@ const Entry = ({
                       </a>
                     </h3>
                   </p>
-                  <p>{s.summary}</p>
+                  <p className="truncate">{s.summary}</p>
                 </div>
               ))}
 
-            <div>
+            {/* <div>
               <textarea style={{ width: "100%", height: "100px" }} />
               <button>Query</button>
             </div>
@@ -125,7 +125,7 @@ const Entry = ({
                   {key}: {value}
                 </p>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </body>
