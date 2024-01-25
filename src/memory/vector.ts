@@ -62,7 +62,7 @@ export const findSimilar = async (
     where,
     include: [IncludeEnum.Metadatas, IncludeEnum.Distances],
   });
-  // console.log(queryResults);
+  console.log(queryResults);
 
   let similarSimple = [];
   for (let i = 0; i < queryResults.metadatas[0].length; i++) {
@@ -72,15 +72,25 @@ export const findSimilar = async (
     similarSimple.push({
       hash: queryResults.metadatas[0][i].hash as string,
       distance: queryResults.distances[0][i],
-      text: meta.audio.transcript,
+      // text: meta.audio.transcript,
+      type: meta.type,
       summary: meta.summary,
+      description: meta.description,
       title: meta.title,
     });
   }
   similarSimple = similarSimple.sort((a, b) => a.distance - b.distance);
   let unique = new Map<
     string,
-    { hash: string; distance: number; summary: string; title: string }
+    {
+      hash: string;
+      distance: number;
+      summary: string;
+      title: string;
+      type: string;
+      description: string;
+    }
+    // { hash: string; distance: number; title: string }
   >();
 
   similarSimple.forEach((item) => {

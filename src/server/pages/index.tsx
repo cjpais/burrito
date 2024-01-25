@@ -27,9 +27,17 @@ const Index = ({ metadata }: { metadata: any[] }) => {
                   {m.title}
                 </a>
               </h3>
-              <p style={{ color: "#777", fontStyle: "bold" }}>
+              <p style={{ color: "#777", fontSize: ".95rem" }}>
                 {dayjs(m.created * 1000).format("MMM D, YYYY - h:mma")}
               </p>
+              {m.location && (
+                <p style={{ color: "#777", fontSize: ".95rem" }}>
+                  {m.location}
+                </p>
+              )}
+              {m.type === "image" && (
+                <img loading="lazy" src={`/i/${m.hash}`} alt={m.description} />
+              )}
               {/* <p style={{ fontSize: ".75rem", fontStyle: "italic" }}>
                 {m.hash}
               </p> */}

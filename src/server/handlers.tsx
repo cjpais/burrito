@@ -7,6 +7,7 @@ import { findSimilar } from "../memory/vector";
 import data from "../../config.json";
 import { QueryRequestSchema } from "./handlers/query";
 import { executeQuery } from "../tools/jsvm";
+import fs from "fs";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -38,50 +39,62 @@ export const entryHandler = async (request: Request) => {
   const metadata = metadataList.find((m) => m.hash === hash);
   if (!metadata) return notFoundHandler(request);
 
-  const queryEmbeddings = metadata.audio.chunks.map(
-    (chunk: any) => chunk.embedding
-  );
+  let queryEmbeddings: null | number[][] = [metadata.embedding];
+  let similar:
+    | {
+        hash: string;
+        distance: number;
+        summary: string;
+        title: string;
+      }[]
+    | null = null;
+  let peersSimilar: any[] | null = null;
 
   // get similar docs
-  const similar = await findSimilar(queryEmbeddings, 5, {
-    hash: {
-      $ne: metadata.hash,
-    },
-  });
+  if (queryEmbeddings) {
+    similar = await findSimilar(queryEmbeddings, 5, {
+      hash: {
+        $ne: metadata.hash,
+      },
+    });
 
-  const peersSimilar = [
-    ...(
-      await Promise.all(
-        data.peers.map(async (peer) =>
-          fetch(`https://${peer}/query/embeddings`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              vectors: queryEmbeddings,
-              num: 5,
-            }),
-          })
-            .then((res) => res.json())
-            .then((j) => EmbeddingResponseSchema.parse(j))
-            .then((d) => d.map((s) => ({ ...s, peer })))
-            .catch((err) => {
-              console.log(err);
-              return null;
+    // console.log(similar);
+
+    peersSimilar = [
+      ...(
+        await Promise.all(
+          data.peers.map(async (peer) =>
+            fetch(`https://${peer}/query/embeddings`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                vectors: queryEmbeddings,
+                num: 5,
+              }),
             })
+              .then((res) => res.json())
+              .then((j) => EmbeddingResponseSchema.parse(j))
+              .then((d) => d.map((s) => ({ ...s, peer })))
+              .catch((err) => {
+                console.log(err);
+                return null;
+              })
+          )
         )
-      )
-    ).flat(),
-  ];
-
-  console.log(peersSimilar);
+      ).flat(),
+    ];
+  }
 
   const page = await renderToReadableStream(
     <Entry
       metadata={metadata}
-      similar={similar}
-      peersSimilar={peersSimilar.filter((d) => d !== null)}
+      similar={similar?.filter((d) => d.distance < 0.24)}
+      peersSimilar={
+        peersSimilar &&
+        peersSimilar.filter((d) => d !== null && d.distance < 0.24)
+      }
     />
   );
   return new Response(page, {
@@ -104,6 +117,34 @@ export const metadataHandler = async (request: Request) => {
       status: 200,
       headers: {
         contentType: "application/json",
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return notFoundHandler(request);
+  }
+};
+
+export const imageHandler = async (request: Request) => {
+  try {
+    const url = new URL(request.url);
+    const hash = decodeURIComponent(url.pathname).split("/").pop();
+    const metadata = await Bun.file(
+      `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`
+    ).json();
+
+    // this assumes the pipeline has run correctly and `compressed.jpg` exists
+    if (metadata.type !== "image") {
+      return notFoundHandler(request);
+    }
+    const compressedImage = await Bun.file(
+      `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/compressed.jpg`
+    );
+
+    return new Response(compressedImage, {
+      status: 200,
+      headers: {
+        "Content-Type": metadata.type,
       },
     });
   } catch (error) {

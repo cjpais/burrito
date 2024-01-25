@@ -9,6 +9,7 @@ import {
 } from "../../../memory/files";
 import { processHearing } from "../../../senses/hearing";
 import { processReading } from "../../../senses/reading";
+import { processVision } from "../../../senses/vision";
 import { GenericObject, RequestMetadataSchema } from "../../handlers";
 
 const activeRequests = new Map<string, boolean>();
@@ -20,6 +21,8 @@ type PipelineFunction = (
 export const storePipelines = new Map<string, PipelineFunction>([
   ["audio", processHearing],
   ["text", processReading],
+  ["video", processVision],
+  ["image", processVision],
 ]);
 
 // TODO note this probably needs to be able to be sent a pipeline as well.
@@ -79,19 +82,6 @@ export const handleStoreRequest = async (request: Request) => {
     metadata.added = Math.floor(new Date().getTime() / 1000);
     metadata.created = metadata.added;
     metadata.originalName = file.name;
-
-    console.log(type);
-    if (basicType === "audio") {
-      // probe the file to get the created date
-      // TODO move this to a pipeline
-      const probe = await getMediaFileInfo(fileInfo.path);
-      if (probe.format.tags?.creation_time) {
-        metadata.created = Math.floor(
-          new Date(probe.format.tags.creation_time).getTime() / 1000
-        );
-      }
-      // metadata.created = probe.streams[0].
-    }
 
     if (fileInfo.status === "exists") {
       // load the metadata into the variable

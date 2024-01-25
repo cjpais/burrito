@@ -19,14 +19,11 @@ const Style = () => {
           text-align: center; /* Center text */
         }
         h3 {
-          margin: 8px 0px 8px 0px;
+          margin: 4px 0px 8px 0px;
         }
         h6 {
           margin: 16px;
           text-align: center;
-        }
-        div {
-          margin: 10px auto; /* Centering and spacing between elements */
         }
         img,
         video {
@@ -58,7 +55,7 @@ const Style = () => {
         .entry-container {
             display: flex;
             flex-direction: column;
-            max-width: 768px;
+            max-width: 600px;
             gap: 24px;
         }
 
@@ -76,11 +73,28 @@ const Style = () => {
             gap: px;
         }
 
-        @media (min-width: 1280px) {
+        @media (min-width: 1200px) {
           .content-container {
             flex-direction: row; /* Arrange children in a row */
-            max-width: 1200px; /* Set a max width for the container if needed */
+            max-width: 100%; /* Set a max width for the container if needed */
             gap: 64px; /* Spacing between columns */
+          }
+          .entry-container {
+            max-width: 600px;
+          }
+          .audio {
+            width: 100%;
+          }
+        }
+
+        @media (min-width: 1536px) {
+          .content-container {
+            flex-direction: row; /* Arrange children in a row */
+            max-width: 1600px; /* Set a max width for the container if needed */
+            gap: 64px; /* Spacing between columns */
+          }
+          .entry-container {
+            max-width: 768px;
           }
           .audio {
             width: 100%;
