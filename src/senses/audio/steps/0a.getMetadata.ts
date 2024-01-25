@@ -8,11 +8,32 @@ import dayjs from "dayjs";
 
 type Metadata = z.infer<typeof FileMetadataSchema & any>;
 
+const parseQuicktimeISO6709 = (location: string) => {
+  const regex = /([+-]?\d+\.\d+)([+-]\d+\.\d+)([+-]\d+\.\d+)/;
+  const matches = location.match(regex);
+  console.log("matches", matches);
+
+  if (matches) {
+    return {
+      latitude: matches[1].replace("+", ""),
+      longitude: matches[2].replace("+", ""),
+      altitude: matches[3].replace("+", ""),
+    };
+  } else {
+    return {
+      latitude: null,
+      longitude: null,
+      altitude: null,
+    };
+  }
+};
+
 export const getMetadataStep: Step<Metadata, Metadata> = {
   name: "getMetadata",
   inputType: FileMetadataSchema,
   outputType: FileMetadataSchema,
   validate: async (metadata) => {
+    if (metadata.type === "video") return false;
     // if the created and added times are the same we should attempt to get the real creation time
     return metadata.created === metadata.added ? false : true;
   },
@@ -23,11 +44,34 @@ export const getMetadataStep: Step<Metadata, Metadata> = {
 
     if (metadata.type === "audio" || metadata.type === "video") {
       const probe = await getMediaFileInfo(fileInfo.path);
-      console.log(probe);
+      // console.log(probe);
       if (probe.format.tags?.creation_time) {
         metadata.created = Math.floor(
           new Date(probe.format.tags.creation_time).getTime() / 1000
         );
+      }
+
+      if (metadata.type === "video") {
+        const rawLocation = probe.format.tags?.[
+          "com.apple.quicktime.location.ISO6709"
+        ] as string | undefined;
+
+        if (rawLocation) {
+          console.log("raw location", rawLocation);
+          const { latitude, longitude, altitude } =
+            parseQuicktimeISO6709(rawLocation);
+          metadata.latitude = latitude;
+          metadata.longitude = longitude;
+          metadata.altitude = altitude;
+        }
+
+        const make = probe.format.tags?.["com.apple.quicktime.make"];
+        const model = probe.format.tags?.["com.apple.quicktime.model"];
+
+        if (make && model) {
+          metadata.video = {};
+          metadata.video.camera = `${make} ${model}`;
+        }
       }
     } else if (metadata.type === "image") {
       const file = await Bun.file(fileInfo.path).arrayBuffer();
