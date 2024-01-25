@@ -16,6 +16,10 @@ export const generateSummaryStep: Step<ChunkSummaries, SummarizedAudio> = {
   name: "generateSummary",
   inputType: ChunkSummariesSchema,
   outputType: SummarizedAudioSchema,
+  validate: async (metadata) => {
+    // return false;
+    return true;
+  },
   run: async (metadata) => {
     const summary = metadata.audio.chunks
       .map((chunk) => chunk.summary)

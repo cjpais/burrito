@@ -29,6 +29,10 @@ export const getChunkSummariesStep: Step<
   name: "getChunkSummaries",
   inputType: TranscribedAudioMetadataSchema,
   outputType: ChunkSummariesSchema,
+  validate: async (metadata) => {
+    // return false;
+    return true;
+  },
   run: async (metadata) => {
     const transcripts = metadata.audio.chunks.map((chunk) => chunk.transcript);
     const promises = transcripts.map((transcript) => summarize(transcript));

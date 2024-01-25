@@ -63,7 +63,7 @@ export const processPipeline = async <Input>(
         : true;
 
       if (isValid) {
-        console.log(`Skipping step ${step.name}`);
+        // console.log(`Skipping step ${step.name}`);
         continue;
       }
     } else {
@@ -85,7 +85,7 @@ export const processPipeline = async <Input>(
     output = newOutput;
   }
 
-  console.log(`Finished processing pipeline ${tag ?? ""}`);
+  // console.log(`Finished processing pipeline ${tag ?? ""}`);
 
   return output;
 };

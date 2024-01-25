@@ -94,3 +94,49 @@ export const compressImage = async (
       .run();
   });
 };
+
+export const compressVideo = async (
+  input: string,
+  output: string,
+  size?: number
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(input)
+      .videoFilter("scale=w='if(gt(iw,ih),1280,-2)':h='if(gt(iw,ih),-2,1280)'")
+      .videoCodec("libx264")
+      .addOptions(["-crf 23", "-preset medium"])
+      .outputOptions("-pix_fmt yuv420p")
+      .output(output)
+      .on("end", () => {
+        console.log(`Video compressed and saved to ${output}`);
+        resolve();
+      })
+      .on("error", (err) => {
+        console.error(`An error occurred: ${err.message}`);
+        reject(err);
+      })
+      .run();
+  });
+};
+
+export const extractAudio = async (
+  input: string,
+  output: string
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(input)
+      .output(output)
+      .noVideo()
+      .audioCodec("libmp3lame")
+      .audioBitrate(128)
+      .on("end", () => {
+        console.log(`Audio extracted and saved to ${output}`);
+        resolve();
+      })
+      .on("error", (err) => {
+        console.error(`An error occurred: ${err.message}`);
+        reject(err);
+      })
+      .run();
+  });
+};

@@ -57,7 +57,11 @@ export const handleStoreRequest = async (request: Request) => {
     const { type } = RequestMetadataSchema.parse(
       JSON.parse((formData.get("metadata") as string) ?? "{}")
     );
-    const mimeType = file.type;
+    let mimeType = file.type;
+    // hack, if file is .MOV make sure the type is video
+    if (file.name.split(".").pop()?.toLowerCase() === "mov")
+      mimeType = "video/quicktime";
+
     const basicType = mimeType?.split("/")[0];
 
     if (type && basicType !== type) {

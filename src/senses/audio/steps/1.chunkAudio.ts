@@ -75,6 +75,7 @@ const validateChunkAudioStep = async (
 ): Promise<boolean> => {
   const fileInfo = await getFileInfo(metadata);
   const info = await getMediaFileInfo(metadata.audio.cleanedFile);
+  const ext = metadata.audio.cleanedFile.split(".").pop();
   // validate duration is the same
   const duration = info.format.duration;
   if (
@@ -96,7 +97,7 @@ const validateChunkAudioStep = async (
   // determine the number of chunks from the original file
   for (let i = 0; i < metadata.audio.chunks.length; i++) {
     const chunk = metadata.audio.chunks[i];
-    if (chunk.filename !== `chunk_${i}.${metadata.ext}`) {
+    if (chunk.filename !== `chunk_${i}.${ext}`) {
       console.log("chunk filename doesnt match", chunk.filename);
       return false;
     }

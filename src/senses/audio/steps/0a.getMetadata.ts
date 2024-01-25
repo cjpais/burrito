@@ -33,7 +33,6 @@ export const getMetadataStep: Step<Metadata, Metadata> = {
   inputType: FileMetadataSchema,
   outputType: FileMetadataSchema,
   validate: async (metadata) => {
-    if (metadata.type === "video") return false;
     // if the created and added times are the same we should attempt to get the real creation time
     return metadata.created === metadata.added ? false : true;
   },

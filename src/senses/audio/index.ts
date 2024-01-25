@@ -22,7 +22,7 @@ import { combineEmbeddingsStep } from "./steps/10.combineEmbeddings";
 import { getMetadataStep } from "./steps/0a.getMetadata";
 
 // NOTE THE SCHEMAS ARE FIXED. THEY CANNOT BE CHANGED. IF YOU WANT TO CHANGE THEM YOU NEED TO MAKE A NEW STEP
-const audioPipelineSteps: Step<any, any>[] = [
+export const audioPipelineSteps: Step<any, any>[] = [
   getMetadataStep,
   cleanAudioStep,
   chunkAudioStep,

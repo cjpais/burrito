@@ -77,7 +77,12 @@ const Entry = ({
                 src={`/i/${metadata.hash}`}
               />
             )}
-            {metadata.audio && <audio controls src={`/f/${metadata.hash}`} />}
+            {metadata.type === "audio" && (
+              <audio controls src={`/f/${metadata.hash}`} />
+            )}
+            {metadata.type === "video" && (
+              <video controls src={`/f/${metadata.hash}`} />
+            )}
             {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
             {metadata.audio && <p>Transcript: {metadata.audio.transcript}</p>}
             {metadata.extractedText && (
