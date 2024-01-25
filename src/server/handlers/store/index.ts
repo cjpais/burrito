@@ -1,5 +1,4 @@
 import { validateAuthToken } from "../..";
-import { getMediaFileInfo } from "../../../external/ffmpeg";
 import {
   FileInfo,
   FileMetadata,
