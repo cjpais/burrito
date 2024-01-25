@@ -18,6 +18,22 @@ import { handleQueryRequest } from "./handlers/query";
 
 export let metadataList: any[] = [];
 
+const colorType = (type: string) => {
+  const output = `[${type}]`;
+  switch (type) {
+    case "audio":
+      return chalk.blue(output);
+    case "text":
+      return chalk.yellow(output);
+    case "video":
+      return chalk.magenta(output);
+    case "image":
+      return chalk.green(output);
+    default:
+      return output;
+  }
+};
+
 const runPipelineOnAllFiles = async () => {
   const root = `${process.env.BRAIN_STORAGE_ROOT!}/data`;
   if (!fs.existsSync(root)) {
@@ -54,12 +70,14 @@ const runPipelineOnAllFiles = async () => {
 
       const pipeline = storePipelines.get(metadata.type);
       if (pipeline) {
-        console.log(`Running pipeline for file: ${metadata.hash}`);
+        // console.log(`Running pipeline for file: ${metadata.hash}`);
 
         const start = Date.now();
         const newMetadata = await pipeline(metadata);
         console.log(
-          `Pipeline for file: ${metadata.hash} took ${Date.now() - start}ms`
+          `${colorType(metadata.type)} pipeline for ${metadata.hash} took ${
+            Date.now() - start
+          }ms`
         );
 
         if (JSON.stringify(newMetadata) !== JSON.stringify(metadata)) {
