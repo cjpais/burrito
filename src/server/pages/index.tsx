@@ -38,7 +38,9 @@ const Index = ({ metadata }: { metadata: any[] }) => {
               {m.type === "image" && (
                 <img loading="lazy" src={`/i/${m.hash}`} alt={m.description} />
               )}
-              {m.type === "video" && <video controls src={`/f/${m.hash}`} />}
+              {m.type === "video" && (
+                <video controls src={`/v/${m.hash}#t=0.1`} />
+              )}
               {/* <p style={{ fontSize: ".75rem", fontStyle: "italic" }}>
                 {m.hash}
               </p> */}
