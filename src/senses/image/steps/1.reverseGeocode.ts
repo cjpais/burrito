@@ -5,13 +5,13 @@ import { generateCompletion } from "../../../cognition/openai";
 const API_URL = `https://us1.locationiq.com/v1/reverse`;
 
 const InputSchema = z.object({
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  latitude: z.number().or(z.string()).optional(),
+  longitude: z.number().or(z.string()).optional(),
 });
 
 const OutputSchema = z.object({
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  latitude: z.number().or(z.string()).optional(),
+  longitude: z.number().or(z.string()).optional(),
   location: z.string().optional(),
 });
 
