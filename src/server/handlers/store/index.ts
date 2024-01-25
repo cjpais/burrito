@@ -9,7 +9,7 @@ import {
 } from "../../../memory/files";
 import { processHearing } from "../../../senses/hearing";
 import { processReading } from "../../../senses/reading";
-import { processVision } from "../../../senses/vision";
+import { processVision } from "../../../senses/image";
 import { GenericObject, RequestMetadataSchema } from "../../handlers";
 
 const activeRequests = new Map<string, boolean>();
