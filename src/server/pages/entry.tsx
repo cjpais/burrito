@@ -156,6 +156,13 @@ const Entry = ({
                     </h3>
                   </p>
                   <p className="truncate">{s.summary}</p>
+                  {s.type === "image" && (
+                    <img
+                      loading="lazy"
+                      alt={s.description}
+                      src={`https://${s.peer}/i/${s.hash}`}
+                    />
+                  )}
                 </div>
               ))}
 

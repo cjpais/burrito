@@ -75,7 +75,7 @@ export const entryHandler = async (request: Request) => {
               }),
             })
               .then((res) => res.json())
-              .then((j) => EmbeddingResponseSchema.parse(j))
+              // .then((j) => EmbeddingResponseSchema.parse(j))
               .then((d) => d.map((s) => ({ ...s, peer })))
               .catch((err) => {
                 console.log(err);
@@ -86,6 +86,10 @@ export const entryHandler = async (request: Request) => {
       ).flat(),
     ];
   }
+
+  peersSimilar = peersSimilar
+    ?.sort((a, b) => a.distance - b.distance)
+    .slice(0, 5);
 
   const page = await renderToReadableStream(
     <Entry
