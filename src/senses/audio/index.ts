@@ -22,7 +22,7 @@ import { combineEmbeddingsStep } from "./steps/10.combineEmbeddings";
 import { getMetadataStep } from "./steps/0a.getMetadata";
 
 // NOTE THE SCHEMAS ARE FIXED. THEY CANNOT BE CHANGED. IF YOU WANT TO CHANGE THEM YOU NEED TO MAKE A NEW STEP
-const hearingSteps: Step<any, any>[] = [
+const audioPipelineSteps: Step<any, any>[] = [
   getMetadataStep,
   cleanAudioStep,
   chunkAudioStep,
@@ -41,10 +41,8 @@ const hearingSteps: Step<any, any>[] = [
   // TODO DO WE REMOVE ALL CHUNK FILES AFTER THEY HAVE BEEN PROCESSED? It's mostly just taking up space
 ];
 
-export const processHearing = async (
-  metadata: FileMetadata & GenericObject
-) => {
-  const newMetadata = await processPipeline(metadata, hearingSteps);
+export const processAudio = async (metadata: FileMetadata & GenericObject) => {
+  const newMetadata = await processPipeline(metadata, audioPipelineSteps);
   metadataList.push(newMetadata);
 
   return newMetadata;

@@ -6,9 +6,10 @@ import {
   hashFile,
   storeFile,
 } from "../../../memory/files";
-import { processHearing } from "../../../senses/hearing";
-import { processReading } from "../../../senses/reading";
-import { processVision } from "../../../senses/image";
+import { processAudio } from "../../../senses/audio";
+import { processText } from "../../../senses/text";
+import { processImage } from "../../../senses/image";
+import { processVideo } from "../../../senses/video";
 import { GenericObject, RequestMetadataSchema } from "../../handlers";
 
 const activeRequests = new Map<string, boolean>();
@@ -18,10 +19,10 @@ type PipelineFunction = (
 ) => Promise<FileMetadata & GenericObject>;
 
 export const storePipelines = new Map<string, PipelineFunction>([
-  ["audio", processHearing],
-  ["text", processReading],
-  ["video", processVision],
-  ["image", processVision],
+  ["audio", processAudio],
+  ["text", processText],
+  ["video", processVideo],
+  ["image", processImage],
 ]);
 
 // TODO note this probably needs to be able to be sent a pipeline as well.

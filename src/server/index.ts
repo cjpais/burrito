@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { FileMetadataSchema, getFileInfo } from "../memory/files";
-import { processHearing } from "../senses/hearing";
-import { processReading } from "../senses/reading";
+import { processHearing } from "../senses/audio";
+import { processReading } from "../senses/text";
 import {
   entryHandler,
   fileHandler,

@@ -3,9 +3,7 @@ import { GenericObject } from "../../server/handlers";
 
 const readingSteps = [];
 
-export const processReading = async (
-  metadata: FileMetadata & GenericObject
-) => {
+export const processText = async (metadata: FileMetadata & GenericObject) => {
   console.log("processing reading");
   return metadata;
 };
