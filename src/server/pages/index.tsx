@@ -38,10 +38,11 @@ const Index = ({ metadata }: { metadata: any[] }) => {
               {m.type === "image" && (
                 <img loading="lazy" src={`/i/${m.hash}`} alt={m.description} />
               )}
+              {m.type === "video" && <video controls src={`/f/${m.hash}`} />}
               {/* <p style={{ fontSize: ".75rem", fontStyle: "italic" }}>
                 {m.hash}
               </p> */}
-              <p>{m.summary}</p>
+              {m.type === "audio" && <p>{m.summary}</p>}
               {/* <p>{m.audio?.transcript ?? "no transcript"}</p> */}
             </div>
           ))}

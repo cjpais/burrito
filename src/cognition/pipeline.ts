@@ -50,7 +50,7 @@ export const processPipeline = async <Input>(
     const parsedInput = step.inputType.safeParse(output);
     if (!parsedInput.success) {
       throw new Error(
-        `Input to step is not valid.\nInput: ${input}\nStep: ${step.name}\nExpected: ${step.inputType}`
+        `Input to step is not valid.\nError: ${parsedInput.error.message}`
       );
     }
 
