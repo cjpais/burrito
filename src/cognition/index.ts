@@ -2,7 +2,7 @@ import { generateCompletion } from "./openai";
 
 export const summarize = async (
   text: string,
-  summaryLength: string = "4 Sentences"
+  summaryLength: string = "4 short sentences"
 ) => {
   return generateCompletion(
     `You are excellent at summarizing. Summarize the following text into ${summaryLength}. If the text is shorter than ${summaryLength}, output the text as it was given to you.`,
