@@ -34,6 +34,10 @@ const Style = () => {
           text-decoration: none;
           color: inherit;
         }
+
+        .link {
+          color: inherit;
+        }
         
         a {
           user-select: text;

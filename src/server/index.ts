@@ -116,7 +116,7 @@ interface Routes {
 }
 
 const routes: Routes = {
-  "^/$": indexHandler,
+  "^/?(?:p=([0-9]+))?$": indexHandler,
   "^/[A-Fa-f0-9]{64}$": entryHandler,
   "^/f/([^/]+)$": fileHandler,
   "^/i/([^/]+)$": imageHandler,
@@ -146,11 +146,26 @@ export const brainServer = async () => {
   Bun.serve({
     port: port,
     fetch(request) {
+      console.log(
+        `${chalk.bold(`${chalk.blue(request.method)}`)} ${request.url}`
+      );
       const url = new URL(request.url);
 
       for (const pattern in routes) {
         const regex = new RegExp(pattern);
-        if (regex.test(url.pathname)) return routes[pattern](request);
+        if (regex.test(url.pathname)) {
+          const timeHandler = async () => {
+            const start = Date.now();
+            const handler = await routes[pattern](request);
+            console.log(
+              `${chalk.green("Response")} ${request.url} ${
+                handler.status
+              } took ${Date.now() - start}ms`
+            );
+            return handler;
+          };
+          return timeHandler();
+        }
       }
       return notFoundHandler(request);
     },

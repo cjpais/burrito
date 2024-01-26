@@ -16,15 +16,29 @@ const fetchPeers = async () => {
   const data = await fetch(
     `${process.env.PEER_SERVER_URL}/api/participants`
   ).then((res) => res.json());
-  return data as BurritoPeer[];
+  const peers = (data as BurritoPeer[]).filter(
+    (d) => d.name !== process.env.BRAIN_NAME
+  );
+  return peers;
 };
 
 export const indexHandler = async (request: Request) => {
-  console.log(`[request] /`);
-  const sortedMetadata = metadataList.sort((a, b) => b.created - a.created);
-  console.log(`[request] / ${sortedMetadata.length} memories`);
+  const pageNum = parseInt(new URL(request.url).searchParams.get("p") || "0");
+  console.log(`[request] / page=${pageNum}`);
+
+  const sliceStart = pageNum * 10;
+  const sliceEnd = (pageNum + 1) * 10;
+
+  const sortedMetadata = metadataList
+    .sort((a, b) => b.created - a.created)
+    .slice(sliceStart, sliceEnd);
+
+  if (sortedMetadata.length === 0) {
+    return notFoundHandler(request);
+  }
+
   const page = await renderToReadableStream(
-    <Index metadata={sortedMetadata} />
+    <Index metadata={sortedMetadata} page={pageNum} />
   );
   console.log(`[request] / rendered`);
 
