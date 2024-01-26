@@ -63,7 +63,7 @@ const Style = () => {
             display: flex;
             flex-direction: column;
             max-width: 600px;
-            gap: 24px;
+            gap: 2rem;
         }
 
         .similar {
@@ -71,6 +71,12 @@ const Style = () => {
             display: flex;
             flex-direction: column;
             gap: px;
+        }
+
+        @media (min-width: 600px) {
+          .memory-holder {
+            gap: 5rem;
+          }
         }
 
         @media (min-width: 1200px) {

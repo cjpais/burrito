@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { metadataList, validateAuthToken } from ".";
 import { renderToReadableStream } from "react-dom/server";
-import Index from "./pages";
-import Entry from "./pages/entry";
+import Index from "./ui/pages";
+import Entry from "./ui/pages/entry";
 import { findSimilar } from "../memory/vector";
 import data from "../../config.json";
 import { QueryRequestSchema } from "./handlers/query";
@@ -21,10 +21,13 @@ export const notFoundHandler = (request: Request) => {
 };
 
 export const indexHandler = async (request: Request) => {
+  console.log(`[request] /`);
   const sortedMetadata = metadataList.sort((a, b) => b.created - a.created);
+  console.log(`[request] / ${sortedMetadata.length} memories`);
   const page = await renderToReadableStream(
     <Index metadata={sortedMetadata} />
   );
+  console.log(`[request] / rendered`);
 
   return new Response(page, {
     status: 200,
@@ -135,6 +138,7 @@ export const metadataHandler = async (request: Request) => {
 };
 
 export const imageHandler = async (request: Request) => {
+  console.log(`[request] /image`);
   try {
     const url = new URL(request.url);
     const hash = decodeURIComponent(url.pathname).split("/").pop();
@@ -154,6 +158,7 @@ export const imageHandler = async (request: Request) => {
       status: 200,
       headers: {
         "Content-Type": metadata.type,
+        "Cache-Control": "public, max-age=31536000",
       },
     });
   } catch (error) {
@@ -166,6 +171,7 @@ export const videoHandler = async (request: Request) => {
   try {
     const url = new URL(request.url);
     const hash = decodeURIComponent(url.pathname).split("/").pop();
+    console.log(`[request] /video ${hash}`);
     const metadata = await Bun.file(
       `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`
     ).json();
@@ -180,7 +186,13 @@ export const videoHandler = async (request: Request) => {
 
     const range = request.headers.get("range");
     if (!range || range === "bytes=0-1") {
-      return new Response(file, { status: 200 });
+      return new Response(file, {
+        status: 200,
+        headers: {
+          "Content-Type": metadata.type,
+          // "Cache-Control": "public, max-age=31536000",
+        },
+      });
     } else {
       let [start, end] = range
         .replace(/bytes=/, "")
@@ -209,6 +221,7 @@ export const videoHandler = async (request: Request) => {
           "Content-Range": `bytes ${start}-${end}/${file.size}`,
           "Accept-Ranges": "bytes",
           "Content-Length": `${partialFile.size}`,
+          // "Cache-Control": "public, max-age=31536000",
         },
       });
     }
@@ -219,6 +232,7 @@ export const videoHandler = async (request: Request) => {
 };
 
 export const fileHandler = async (request: Request) => {
+  console.log(`[request] /file`);
   try {
     const url = new URL(request.url);
     const hash = decodeURIComponent(url.pathname).split("/").pop();
@@ -232,7 +246,13 @@ export const fileHandler = async (request: Request) => {
 
     const range = request.headers.get("range");
     if (!range || range === "bytes=0-1") {
-      return new Response(file, { status: 200 });
+      return new Response(file, {
+        status: 200,
+        headers: {
+          "Content-Type": metadata.type,
+          "Cache-Control": "public, max-age=31536000",
+        },
+      });
     } else {
       let [start, end] = range
         .replace(/bytes=/, "")
@@ -261,6 +281,7 @@ export const fileHandler = async (request: Request) => {
           "Content-Range": `bytes ${start}-${end}/${file.size}`,
           "Accept-Ranges": "bytes",
           "Content-Length": `${partialFile.size}`,
+          // "Cache-Control": "public, max-age=31536000",
         },
       });
     }

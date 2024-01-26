@@ -37,14 +37,12 @@ you have been given \`data: Metadata[]\` to work with.
 export interface Metadata {
     hash?:         string;
     type?:         string; // never filter on this unless specified. audio, text, image, video
-    ext?:          string;
     created?:      number; // UNIX timestamp (seconds)
-    added?:        number; // UNIX timestamp (seconds)
-    originalName?: string;
     audio?:        Audio;
     summary?:      string;
+    description?:  string;
+    location?:     string;
     title?:        string;
-    compost?:      string;
 }
 export interface Audio {
     durationSec?:  number; // the length of the recorded audio clip
