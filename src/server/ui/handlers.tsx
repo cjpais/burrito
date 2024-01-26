@@ -13,9 +13,9 @@ export type BurritoPeer = {
 };
 
 const fetchPeers = async () => {
-  const data = await fetch("https://burrito.place/api/participants").then(
-    (res) => res.json()
-  );
+  const data = await fetch(
+    `${process.env.PEER_SERVER_URL}/api/participants`
+  ).then((res) => res.json());
   return data as BurritoPeer[];
 };
 
