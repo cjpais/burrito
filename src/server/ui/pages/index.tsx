@@ -15,6 +15,7 @@ const Index = ({ metadata, page }: { metadata: any[]; page: number }) => {
           display: "flex",
           gap: "1rem",
           paddingTop: "2rem",
+          paddingBottom: "2rem",
           fontSize: ".85rem",
         }}
       >
