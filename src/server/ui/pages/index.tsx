@@ -9,6 +9,7 @@ const Index = ({ metadata, page }: { metadata: any[]; page: number }) => {
           <Memory key={id} m={m} />
         ))}
       </div>
+      {metadata.length === 0 && <h2>no posts</h2>}
       <div
         className="mono"
         style={{
@@ -24,9 +25,11 @@ const Index = ({ metadata, page }: { metadata: any[]; page: number }) => {
             previous
           </a>
         )}
-        <a href={`/?p=${page + 1}`} className="link">
-          next
-        </a>
+        {metadata.length > 0 && (
+          <a href={`/?p=${page + 1}`} className="link">
+            next
+          </a>
+        )}
       </div>
     </Layout>
   );

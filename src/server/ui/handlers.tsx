@@ -33,10 +33,6 @@ export const indexHandler = async (request: Request) => {
     .sort((a, b) => b.created - a.created)
     .slice(sliceStart, sliceEnd);
 
-  if (sortedMetadata.length === 0) {
-    return notFoundHandler(request);
-  }
-
   const page = await renderToReadableStream(
     <Index metadata={sortedMetadata} page={pageNum} />
   );
