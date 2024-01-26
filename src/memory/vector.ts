@@ -62,13 +62,16 @@ export const findSimilar = async (
     where,
     include: [IncludeEnum.Metadatas, IncludeEnum.Distances],
   });
-  console.log(queryResults);
 
   let similarSimple = [];
   for (let i = 0; i < queryResults.metadatas[0].length; i++) {
     const meta = metadataList.find(
       (m) => m.hash === queryResults.metadatas[0][i].hash
     );
+    if (!meta) {
+      console.log("meta not found for hash", queryResults.metadatas[0][i].hash);
+      continue;
+    }
     similarSimple.push({
       hash: queryResults.metadatas[0][i].hash as string,
       distance: queryResults.distances[0][i],
