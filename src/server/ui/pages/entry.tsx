@@ -97,27 +97,26 @@ const Entry = ({
             )}
           </div>
           <div className="similar">
-            <h2>Similar Entries</h2>
+            <h2>Similar Entrees</h2>
             {similar &&
               similar.map((s) => (
                 <div key={s.hash}>
-                  <p
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: ".777rem",
-                      color: "#777",
-                    }}
-                  >
-                    <a href={`/${s.hash}`} style={{ color: "#777" }}>
-                      0x{s.hash.slice(0, 6)}
-                    </a>
-                    .....Similarity: {1 - s.distance}
+                  <div style={{ paddingBottom: ".25rem" }}>
                     <h3>
                       <a style={{ color: "#EEE" }} href={`/${s.hash}`}>
                         {s.title}
                       </a>
                     </h3>
-                  </p>
+                    <p
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: ".777rem",
+                        color: "#777",
+                      }}
+                    >
+                      {`${((1 - s.distance) * 100).toFixed(2)}% similar`}
+                    </p>
+                  </div>
                   {s.summary && <p className="truncate">{s.summary}</p>}
                   {s.type === "image" && (
                     <img
@@ -132,34 +131,46 @@ const Entry = ({
 
           <div className="similar">
             {peersSimilar && peersSimilar.length > 0 && (
-              <h2>Peers Similar Entries</h2>
+              <h2>Friends Similar Entrees</h2>
             )}
             {peersSimilar &&
               peersSimilar.map((s) => (
                 <div key={s.hash}>
-                  <p
+                  <h3>
+                    <a
+                      style={{ color: "#EEE" }}
+                      href={`${s.peer.url}/${s.hash}`}
+                    >
+                      {s.title}
+                    </a>
+                  </h3>
+                  <div
                     style={{
-                      fontFamily: "monospace",
-                      fontSize: ".777rem",
-                      color: "#777",
+                      display: "flex",
+                      gap: ".5rem",
+                      paddingBottom: ".25rem",
                     }}
                   >
                     <a
                       href={`${s.peer.url}/${s.hash}`}
-                      style={{ color: "#777" }}
+                      style={{
+                        color: "#777",
+                        fontFamily: "monospace",
+                        fontSize: ".777rem",
+                      }}
                     >
-                      {s.peer.display} 0x{s.hash.slice(0, 6)}
+                      {s.peer.display}
                     </a>
-                    .....Similarity: {1 - s.distance}
-                    <h3>
-                      <a
-                        style={{ color: "#EEE" }}
-                        href={`${s.peer.url}/${s.hash}`}
-                      >
-                        {s.title}
-                      </a>
-                    </h3>
-                  </p>
+                    <p
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: ".777rem",
+                        color: "#777",
+                      }}
+                    >
+                      {`${((1 - s.distance) * 100).toFixed(2)}% similar`}
+                    </p>
+                  </div>
                   <p className="truncate">{s.summary}</p>
                   {s.type === "image" && (
                     <img

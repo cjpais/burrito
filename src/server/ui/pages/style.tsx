@@ -18,6 +18,9 @@ const Style = () => {
           margin-top: 16px;
           text-align: center; /* Center text */
         }
+        h2 {
+          margin: 0px 0px 8px 0px;
+        }
         h3 {
           margin: 4px 0px 8px 0px;
         }
@@ -74,7 +77,7 @@ const Style = () => {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: px;
+            gap: 1rem;
         }
 
         @media (min-width: 600px) {
