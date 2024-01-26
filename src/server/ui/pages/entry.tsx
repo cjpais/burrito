@@ -145,7 +145,7 @@ const Entry = ({
                     }}
                   >
                     <a
-                      href={`https://${s.peer}/${s.hash}`}
+                      href={`${s.peer.url}/${s.hash}`}
                       style={{ color: "#777" }}
                     >
                       {s.peer} 0x{s.hash.slice(0, 6)}
@@ -154,7 +154,7 @@ const Entry = ({
                     <h3>
                       <a
                         style={{ color: "#EEE" }}
-                        href={`https://${s.peer}/${s.hash}`}
+                        href={`${s.peer.url}/${s.hash}`}
                       >
                         {s.title}
                       </a>
@@ -165,7 +165,7 @@ const Entry = ({
                     <img
                       loading="lazy"
                       alt={s.description}
-                      src={`https://${s.peer}/i/${s.hash}`}
+                      src={`${s.peer.url}/i/${s.hash}`}
                     />
                   )}
                 </div>

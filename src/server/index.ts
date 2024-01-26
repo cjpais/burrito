@@ -1,12 +1,10 @@
 import chalk from "chalk";
 import { FileMetadataSchema, getFileInfo } from "../memory/files";
 import {
-  entryHandler,
   fileHandler,
   handleDataRequest,
   handleEmbeddingsRequest,
   imageHandler,
-  indexHandler,
   metadataHandler,
   notFoundHandler,
   videoHandler,
@@ -14,6 +12,7 @@ import {
 import fs from "fs";
 import { handleStoreRequest, storePipelines } from "./handlers/store";
 import { handleQueryRequest } from "./handlers/query";
+import { entryHandler, indexHandler } from "./ui/handlers";
 
 export let metadataList: any[] = [];
 
