@@ -189,8 +189,7 @@ export const videoHandler = async (request: Request) => {
       return new Response(file, {
         status: 200,
         headers: {
-          // "Cache-Control": "public, max-age=31536000",
-          // "Cache-Control": "no-cache",
+          "Cache-Control": "public, max-age=31536000",
         },
       });
     } else {
@@ -221,8 +220,7 @@ export const videoHandler = async (request: Request) => {
           "Content-Range": `bytes ${start}-${end}/${file.size}`,
           "Accept-Ranges": "bytes",
           "Content-Length": `${partialFile.size}`,
-          // "Cache-Control": "no-cache",
-          // "Cache-Control": "public, max-age=31536000",
+          "Cache-Control": "public, max-age=31536000",
         },
       });
     }

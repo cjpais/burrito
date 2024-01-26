@@ -17,7 +17,7 @@ import { handleQueryRequest } from "./handlers/query";
 
 export let metadataList: any[] = [];
 
-const colorType = (type: string) => {
+export const colorType = (type: string) => {
   const output = `[${type}]`;
   switch (type) {
     case "audio":

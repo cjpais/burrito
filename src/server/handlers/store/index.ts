@@ -1,4 +1,4 @@
-import { validateAuthToken } from "../..";
+import { colorType, validateAuthToken } from "../..";
 import {
   FileInfo,
   FileMetadata,
@@ -108,8 +108,14 @@ export const handleStoreRequest = async (request: Request) => {
 
     // run steps
     if (storePipelines.has(basicType)) {
+      const start = Date.now();
       let pipeline = storePipelines.get(basicType)!;
       metadata = await pipeline(parsedMetadata);
+      console.log(
+        `${colorType(metadata.type)} pipeline for ${metadata.hash} took ${
+          Date.now() - start
+        }ms`
+      );
     } else {
       return new Response(`No pipeline for type ${basicType}`, { status: 400 });
     }
