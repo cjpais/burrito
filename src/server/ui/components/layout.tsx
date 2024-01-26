@@ -20,7 +20,7 @@ const Layout = ({
       <body>
         <h1>
           <a href="/" className="hidden-link">
-            {process.env.BRAIN_NAME}
+            {`${process.env.BRAIN_NAME}s burrito`}
           </a>
         </h1>
         {children}
