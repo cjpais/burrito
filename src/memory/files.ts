@@ -2,6 +2,7 @@ import { BunFile } from "bun";
 import { z } from "zod";
 import mime from "mime";
 import fs from "fs";
+import { hash } from "../misc/misc";
 
 export const FileMetadataSchema = z.object({
   hash: z.string(),
@@ -34,11 +35,7 @@ export type FileStatus = z.infer<typeof FileInfoSchema>["status"];
 
 export const hashFile = async (file: File | BunFile) => {
   const buffer = await file.arrayBuffer();
-  const hasher = new Bun.CryptoHasher("sha256");
-
-  hasher.update(buffer);
-
-  return hasher.digest("hex");
+  return hash(buffer);
 };
 
 export const getFileInfo = async (metadata: FileMetadata) => {

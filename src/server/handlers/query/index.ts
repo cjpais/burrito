@@ -9,7 +9,7 @@ import {
   INTERPRET_DATA_PROMPT_TEMPLATE,
   KEYWORD_SYS_PROMPT,
   NEW_CODE_SYSTEM_PROMPT,
-} from "../../../../prompts";
+} from "../../../misc/prompts";
 import Mustache from "mustache";
 import { randomUUID } from "node:crypto";
 import { keywordSearch } from "../../../tools/keyword";

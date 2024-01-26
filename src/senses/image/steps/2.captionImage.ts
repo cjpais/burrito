@@ -7,7 +7,7 @@ import {
   getFileInfo,
 } from "../../../memory/files";
 import { generateImageCompletion } from "../../../cognition/openai";
-import { DESCRIBE_IMAGE_PROMPT, ImageDescription } from "../../../../prompts";
+import { DESCRIBE_IMAGE_PROMPT, ImageDescription } from "../../../misc/prompts";
 import { extractJSON } from "../../../cognition";
 
 const OutputSchema = FileMetadataSchema.extend({

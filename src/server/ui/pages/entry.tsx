@@ -148,7 +148,7 @@ const Entry = ({
                       href={`${s.peer.url}/${s.hash}`}
                       style={{ color: "#777" }}
                     >
-                      {s.peer} 0x{s.hash.slice(0, 6)}
+                      {s.peer.display} 0x{s.hash.slice(0, 6)}
                     </a>
                     .....Similarity: {1 - s.distance}
                     <h3>
