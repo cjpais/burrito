@@ -8,6 +8,7 @@ import data from "../../config.json";
 import { QueryRequestSchema } from "./handlers/query";
 import { executeQuery } from "../tools/jsvm";
 import fs from "fs";
+import chalk from "chalk";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -78,7 +79,10 @@ export const entryHandler = async (request: Request) => {
               // .then((j) => EmbeddingResponseSchema.parse(j))
               .then((d) => d.map((s) => ({ ...s, peer })))
               .catch((err) => {
-                console.log(err);
+                console.log(
+                  `${chalk.red("[error]")} peer ${peer} with error`,
+                  err
+                );
                 return null;
               })
           )
@@ -88,6 +92,7 @@ export const entryHandler = async (request: Request) => {
   }
 
   peersSimilar = peersSimilar
+    ?.filter((d) => d !== null)
     ?.sort((a, b) => a.distance - b.distance)
     .slice(0, 5);
 
@@ -151,6 +156,62 @@ export const imageHandler = async (request: Request) => {
         "Content-Type": metadata.type,
       },
     });
+  } catch (error) {
+    console.log(error);
+    return notFoundHandler(request);
+  }
+};
+
+export const videoHandler = async (request: Request) => {
+  try {
+    const url = new URL(request.url);
+    const hash = decodeURIComponent(url.pathname).split("/").pop();
+    const metadata = await Bun.file(
+      `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`
+    ).json();
+
+    // this assumes the pipeline has run correctly and `compressed.jpg` exists
+    if (metadata.type !== "video") {
+      return notFoundHandler(request);
+    }
+    const file = await Bun.file(
+      `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/compressed.mp4`
+    );
+
+    const range = request.headers.get("range");
+    if (!range || range === "bytes=0-1") {
+      return new Response(file, { status: 200 });
+    } else {
+      let [start, end] = range
+        .replace(/bytes=/, "")
+        .split("-")
+        .map(Number);
+
+      start = start || 0;
+      end = end ? end : file.size - 1;
+
+      // Check if the range is valid
+      if (start >= file.size || end >= file.size) {
+        return new Response(null, {
+          status: 416, // Range Not Satisfiable
+          headers: {
+            "Content-Range": `bytes */${file.size}`,
+            "Content-Type": file.type,
+          },
+        });
+      }
+
+      const partialFile = file.slice(start, end + 1);
+
+      return new Response(partialFile, {
+        status: 206, // Partial Content
+        headers: {
+          "Content-Range": `bytes ${start}-${end}/${file.size}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": `${partialFile.size}`,
+        },
+      });
+    }
   } catch (error) {
     console.log(error);
     return notFoundHandler(request);

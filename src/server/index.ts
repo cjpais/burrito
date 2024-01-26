@@ -1,7 +1,5 @@
 import chalk from "chalk";
 import { FileMetadataSchema, getFileInfo } from "../memory/files";
-import { processHearing } from "../senses/audio";
-import { processReading } from "../senses/text";
 import {
   entryHandler,
   fileHandler,
@@ -11,6 +9,7 @@ import {
   indexHandler,
   metadataHandler,
   notFoundHandler,
+  videoHandler,
 } from "./handlers";
 import fs from "fs";
 import { handleStoreRequest, storePipelines } from "./handlers/store";
@@ -122,6 +121,7 @@ const routes: Routes = {
   "^/[A-Fa-f0-9]{64}$": entryHandler,
   "^/f/([^/]+)$": fileHandler,
   "^/i/([^/]+)$": imageHandler,
+  "^/v/([^/]+)$": videoHandler,
   "^/m/([^/]+)$": metadataHandler,
   "^/store$": handleStoreRequest,
   "^/query$": handleQueryRequest,
@@ -157,7 +157,7 @@ export const brainServer = async () => {
     },
   });
 
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(chalk.bold(`Server running at http://localhost:${port}`));
 };
 
 runPipelineOnAllFiles();

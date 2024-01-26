@@ -81,7 +81,7 @@ const Entry = ({
               <audio controls src={`/f/${metadata.hash}`} />
             )}
             {metadata.type === "video" && (
-              <video controls src={`/f/${metadata.hash}`} />
+              <video controls src={`/v/${metadata.hash}#t=0.1`} />
             )}
             {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
             {metadata.audio && <p>Transcript: {metadata.audio.transcript}</p>}
