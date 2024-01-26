@@ -70,6 +70,7 @@ export const findSimilar = async (
     );
     if (!meta) {
       console.log("meta not found for hash", queryResults.metadatas[0][i].hash);
+      collection.delete(queryResults.metadatas[0][i].hash);
       continue;
     }
     similarSimple.push({
