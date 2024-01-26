@@ -168,10 +168,10 @@ export const imageHandler = async (request: Request) => {
 };
 
 export const videoHandler = async (request: Request) => {
+  console.log(`[request] /video`);
   try {
     const url = new URL(request.url);
     const hash = decodeURIComponent(url.pathname).split("/").pop();
-    console.log(`[request] /video ${hash}`);
     const metadata = await Bun.file(
       `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`
     ).json();
@@ -189,8 +189,8 @@ export const videoHandler = async (request: Request) => {
       return new Response(file, {
         status: 200,
         headers: {
-          "Content-Type": metadata.type,
           // "Cache-Control": "public, max-age=31536000",
+          // "Cache-Control": "no-cache",
         },
       });
     } else {
@@ -221,6 +221,7 @@ export const videoHandler = async (request: Request) => {
           "Content-Range": `bytes ${start}-${end}/${file.size}`,
           "Accept-Ranges": "bytes",
           "Content-Length": `${partialFile.size}`,
+          // "Cache-Control": "no-cache",
           // "Cache-Control": "public, max-age=31536000",
         },
       });
@@ -249,8 +250,7 @@ export const fileHandler = async (request: Request) => {
       return new Response(file, {
         status: 200,
         headers: {
-          "Content-Type": metadata.type,
-          "Cache-Control": "public, max-age=31536000",
+          // "Cache-Control": "public, max-age=31536000",
         },
       });
     } else {
