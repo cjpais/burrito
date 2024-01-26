@@ -23,8 +23,8 @@ export const executeQuery = async (query: string) => {
           },
         },
         required: ["code"],
-      }
-      // "gpt-4-1106-preview"
+      },
+      "gpt-4-1106-preview"
     )) as string;
     codeCompletionCache.set(query, codeCompletion);
   }
