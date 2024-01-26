@@ -9,7 +9,6 @@ WORKDIR /dist
 
 ENV FLUENTFFMPEG_COV=
 COPY . .
-COPY config.example.json config.json
 
 RUN ls -la
 
