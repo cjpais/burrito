@@ -33,6 +33,9 @@ export const getMetadataStep: Step<Metadata, Metadata> = {
   inputType: FileMetadataSchema,
   outputType: FileMetadataSchema,
   validate: async (metadata) => {
+    // if (metadata.type === "video") {
+    //   return false;
+    // }
     // if the created and added times are the same we should attempt to get the real creation time
     return metadata.created === metadata.added ? false : true;
   },
@@ -41,36 +44,40 @@ export const getMetadataStep: Step<Metadata, Metadata> = {
 
     // TODO should we just store entire raw EXIF/Probe blob?
 
-    if (metadata.type === "audio" || metadata.type === "video") {
+    if (metadata.type === "audio") {
       const probe = await getMediaFileInfo(fileInfo.path);
-      // console.log(probe);
       if (probe.format.tags?.creation_time) {
         metadata.created = Math.floor(
           new Date(probe.format.tags.creation_time).getTime() / 1000
         );
       }
+    } else if (metadata.type === "video") {
+      const probe = await getMediaFileInfo(fileInfo.path);
 
-      if (metadata.type === "video") {
-        const rawLocation = probe.format.tags?.[
-          "com.apple.quicktime.location.ISO6709"
-        ] as string | undefined;
+      const created = probe.format.tags?.["com.apple.quicktime.creationdate"];
+      if (created) {
+        metadata.created = dayjs(created).unix();
+      }
 
-        if (rawLocation) {
-          console.log("raw location", rawLocation);
-          const { latitude, longitude, altitude } =
-            parseQuicktimeISO6709(rawLocation);
-          metadata.latitude = latitude;
-          metadata.longitude = longitude;
-          metadata.altitude = altitude;
-        }
+      const rawLocation = probe.format.tags?.[
+        "com.apple.quicktime.location.ISO6709"
+      ] as string | undefined;
 
-        const make = probe.format.tags?.["com.apple.quicktime.make"];
-        const model = probe.format.tags?.["com.apple.quicktime.model"];
+      if (rawLocation) {
+        console.log("raw location", rawLocation);
+        const { latitude, longitude, altitude } =
+          parseQuicktimeISO6709(rawLocation);
+        metadata.latitude = latitude;
+        metadata.longitude = longitude;
+        metadata.altitude = altitude;
+      }
 
-        if (make && model) {
-          metadata.video = {};
-          metadata.video.camera = `${make} ${model}`;
-        }
+      const make = probe.format.tags?.["com.apple.quicktime.make"];
+      const model = probe.format.tags?.["com.apple.quicktime.model"];
+
+      if (make && model) {
+        metadata.video = {};
+        metadata.video.camera = `${make} ${model}`;
       }
     } else if (metadata.type === "image") {
       const file = await Bun.file(fileInfo.path).arrayBuffer();
