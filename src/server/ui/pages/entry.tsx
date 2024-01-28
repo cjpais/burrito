@@ -85,6 +85,16 @@ const Entry = ({
             )}
             {/* <p style={{ fontSize: ".9rem", wordSpacing: "2px" }}> */}
             {metadata.audio && <p>Transcript: {metadata.audio.transcript}</p>}
+            {metadata.text && (
+              <>
+                <p>Text</p>
+                <div>
+                  <Markdown remarkPlugins={[remarkGfm]}>
+                    {processMarkdown(metadata.text)}
+                  </Markdown>
+                </div>
+              </>
+            )}
             {metadata.extractedText && (
               <>
                 <p>Extracted Text</p>

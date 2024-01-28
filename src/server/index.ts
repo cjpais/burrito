@@ -78,6 +78,9 @@ const runPipelineOnAllFiles = async () => {
           }ms`
         );
 
+        metadata.type === "text" && console.log(metadata);
+        metadata.type === "text" && console.log(newMetadata);
+
         if (JSON.stringify(newMetadata) !== JSON.stringify(metadata)) {
           console.log("metadata changed, updating");
           await Bun.write(

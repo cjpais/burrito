@@ -22,7 +22,7 @@ const Memory = ({ m }: { m: any }) => {
         <img loading="lazy" src={`/i/${m.hash}`} alt={m.description} />
       )}
       {m.type === "video" && <video controls src={`/v/${m.hash}#t=0.1`} />}
-      {m.type === "audio" && <p>{m.summary}</p>}
+      {(m.type === "audio" || m.type === "text") && <p>{m.summary}</p>}
     </div>
   );
 };
