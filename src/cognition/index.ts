@@ -91,10 +91,14 @@ export const extractJSON = <T>(text: string): T | null => {
   try {
     result = JSON.parse(text) as T;
   } catch {
-    const match = text.match(CODE_REGEX);
-    if (match && match.length > 1) {
-      result = JSON.parse(match[1]) as T;
-    } else {
+    try {
+      const match = text.match(CODE_REGEX);
+      if (match && match.length > 1) {
+        result = JSON.parse(match[1]) as T;
+      } else {
+        console.log(`NO JSON MATCH FOUND FOR TEXT: ${text}`);
+      }
+    } catch {
       console.log(`NO JSON MATCH FOUND FOR TEXT: ${text}`);
     }
   }
