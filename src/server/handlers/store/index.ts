@@ -14,9 +14,9 @@ import { GenericObject, RequestMetadataSchema } from "../../handlers";
 
 const activeRequests = new Map<string, boolean>();
 
-type PipelineFunction = (
-  metadata: FileMetadata & GenericObject
-) => Promise<FileMetadata & GenericObject>;
+type Metadata = FileMetadata & GenericObject;
+
+type PipelineFunction = (metadata: Metadata) => Promise<Metadata>;
 
 export const storePipelines = new Map<string, PipelineFunction>([
   ["audio", processAudio],
@@ -24,6 +24,21 @@ export const storePipelines = new Map<string, PipelineFunction>([
   ["video", processVideo],
   ["image", processImage],
 ]);
+
+const runStorePipeline = async (metadata: Metadata, fileInfo: FileInfo) => {
+  const start = Date.now();
+  let pipeline = storePipelines.get(metadata.type)!;
+  metadata = await pipeline(metadata);
+  console.log(
+    `${colorType(metadata.type)} pipeline for ${metadata.hash} took ${
+      Date.now() - start
+    }ms`
+  );
+  if (metadata.hash) activeRequests.delete(metadata.hash);
+  Bun.write(`${fileInfo.dir}/metadata.json`, JSON.stringify(metadata));
+
+  // hit callbacks
+};
 
 // TODO note this probably needs to be able to be sent a pipeline as well.
 export const handleStoreRequest = async (request: Request) => {
@@ -54,9 +69,10 @@ export const handleStoreRequest = async (request: Request) => {
     }
 
     // TODO handle this error in a reasonable way
-    const { type } = RequestMetadataSchema.parse(
+    const { type, callbackUrl, userData } = RequestMetadataSchema.parse(
       JSON.parse((formData.get("metadata") as string) ?? "{}")
     );
+    console.log("User data", userData);
     let mimeType = file.type;
     // hack, if file is .MOV make sure the type is video
     if (file.name.split(".").pop()?.toLowerCase() === "mov")
@@ -86,6 +102,7 @@ export const handleStoreRequest = async (request: Request) => {
     metadata.added = Math.floor(new Date().getTime() / 1000);
     metadata.created = metadata.added;
     metadata.originalName = file.name;
+    metadata.userData = userData;
 
     if (fileInfo.status === "exists") {
       // load the metadata into the variable
@@ -108,14 +125,7 @@ export const handleStoreRequest = async (request: Request) => {
 
     // run steps
     if (storePipelines.has(basicType)) {
-      const start = Date.now();
-      let pipeline = storePipelines.get(basicType)!;
-      metadata = await pipeline(parsedMetadata);
-      console.log(
-        `${colorType(metadata.type)} pipeline for ${metadata.hash} took ${
-          Date.now() - start
-        }ms`
-      );
+      runStorePipeline(parsedMetadata, fileInfo);
     } else {
       return new Response(`No pipeline for type ${basicType}`, { status: 400 });
     }
@@ -130,7 +140,6 @@ export const handleStoreRequest = async (request: Request) => {
     console.log("Internal Server Error", e);
     return new Response(`Internal Server Error: ${e}`, { status: 500 });
   } finally {
-    if (metadata.hash) activeRequests.delete(metadata.hash);
     if (fileInfo) {
       // write out metadata.json
       Bun.write(`${fileInfo.dir}/metadata.json`, JSON.stringify(metadata));

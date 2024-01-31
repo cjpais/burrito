@@ -7,6 +7,8 @@ import { executeQuery } from "../tools/jsvm";
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
   created: z.number().optional(),
+  callbackUrl: z.string().optional(),
+  userData: z.any().optional(),
 });
 export type GenericObject = { [key: string]: any };
 
