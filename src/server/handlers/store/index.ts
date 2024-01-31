@@ -11,6 +11,7 @@ import { processText } from "../../../senses/text";
 import { processImage } from "../../../senses/image";
 import { processVideo } from "../../../senses/video";
 import { GenericObject, RequestMetadataSchema } from "../../handlers";
+import { sendMessage } from "../../../external/jared";
 
 const activeRequests = new Map<string, boolean>();
 
@@ -38,6 +39,12 @@ const runStorePipeline = async (metadata: Metadata, fileInfo: FileInfo) => {
   Bun.write(`${fileInfo.dir}/metadata.json`, JSON.stringify(metadata));
 
   // hit callbacks
+  if (process.env.JARED_API && process.env.ICLOUD_ID) {
+    await sendMessage(`Added your ${metadata.type} to the burrito!`);
+    sendMessage(
+      `https://${process.env.BRAIN_NAME}.burrito.place/${metadata.hash}`
+    );
+  }
 };
 
 // TODO note this probably needs to be able to be sent a pipeline as well.
