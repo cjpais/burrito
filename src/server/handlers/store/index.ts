@@ -39,12 +39,10 @@ const runStorePipeline = async (metadata: Metadata, fileInfo: FileInfo) => {
   Bun.write(`${fileInfo.dir}/metadata.json`, JSON.stringify(metadata));
 
   // hit callbacks
-  if (process.env.JARED_API && process.env.ICLOUD_ID) {
-    await sendMessage(`Added your ${metadata.type} to the burrito!`);
-    sendMessage(
-      `https://${process.env.BRAIN_NAME}.burrito.place/${metadata.hash}`
-    );
-  }
+  await sendMessage(`Added your ${metadata.type} to the burrito!`);
+  sendMessage(
+    `https://${process.env.BRAIN_NAME}.burrito.place/${metadata.hash}`
+  );
 };
 
 // TODO note this probably needs to be able to be sent a pipeline as well.
@@ -118,6 +116,8 @@ export const handleStoreRequest = async (request: Request) => {
         ...metadata,
         ...JSON.parse(await Bun.file(`${fileInfo.dir}/metadata.json`).text()),
       };
+
+      sendMessage("you've already added this file!");
 
       return new Response(JSON.stringify(metadata), {
         status: 200,
