@@ -13,6 +13,7 @@ import fs from "fs";
 import { handleStoreRequest, storePipelines } from "./handlers/store";
 import { handleQueryRequest } from "./handlers/query";
 import { entryHandler, indexHandler } from "./ui/handlers";
+import { handleDeleteRequest } from "./handlers/delete";
 
 export let metadataList: any[] = [];
 
@@ -126,6 +127,7 @@ const routes: Routes = {
   "^/v/([^/]+)$": videoHandler,
   "^/m/([^/]+)$": metadataHandler,
   "^/store$": handleStoreRequest,
+  "^/delete$": handleDeleteRequest,
   "^/query$": handleQueryRequest,
   "^/query/embeddings$": handleEmbeddingsRequest,
   "^/query/data$": handleDataRequest,

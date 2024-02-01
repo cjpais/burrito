@@ -1,7 +1,5 @@
 import { z } from "zod";
 import Ajv, { ValidateFunction } from "ajv";
-import { generateCompletion } from "../../../cognition/openai";
-import { query } from "../../../memory/vector";
 import { metadataList, validateAuthToken } from "../..";
 import dayjs from "dayjs";
 import {
