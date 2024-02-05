@@ -18,6 +18,10 @@ const Memory = ({ m }: { m: any }) => {
           {dayjs(m.created * 1000).format("MMM D, YYYY - h:mma")}
         </p>
       </div>
+
+      {m.userData && (
+        <p>{m.userData}</p>
+      )}
       {m.type === "image" && (
         <img loading="lazy" src={`/i/${m.hash}`} alt={m.description} />
       )}

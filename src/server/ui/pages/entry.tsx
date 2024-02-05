@@ -68,6 +68,7 @@ const Entry = ({
             {metadata.summary && (
               <i style={{ fontStyle: "italic" }}>Summary: {metadata.summary}</i>
             )}
+            {metadata.userData && <p>Comment: {metadata.userData}</p>}
             {metadata.caption && <p>Caption: {metadata.caption}</p>}
             {metadata.description && <i>Description: {metadata.description}</i>}
             {metadata.type === "image" && (
