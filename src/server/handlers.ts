@@ -3,6 +3,7 @@ import { validateAuthToken } from ".";
 import { findSimilar } from "../memory/vector";
 import { QueryRequestSchema } from "./handlers/query";
 import { executeQuery } from "../tools/jsvm";
+import { generateEmbeddings } from "../cognition/openai";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -189,7 +190,8 @@ export const fileHandler = async (request: Request) => {
 };
 
 const EmbeddingRequestSchema = z.object({
-  vectors: z.array(z.array(z.number()).length(1536)),
+  vectors: z.array(z.array(z.number()).length(1536)).optional(),
+  queries: z.array(z.string()).optional(),
   num: z.number().max(50).optional(),
 });
 
@@ -235,9 +237,30 @@ export const handleEmbeddingsRequest = async (request: Request) => {
 
   try {
     const body = await request.json();
-    const { vectors, num } = EmbeddingRequestSchema.parse(body);
+    const {
+      vectors: rawVectors,
+      queries,
+      num,
+    } = EmbeddingRequestSchema.parse(body);
 
-    const similar = await findSimilar(vectors, num || 5);
+    if (!rawVectors && !queries) {
+      return new Response(
+        "Bad request: either 'vectors' or 'queries' must be provided.",
+        { status: 400 }
+      );
+    }
+
+    let vectors = rawVectors;
+
+    if (queries) {
+      if (vectors) {
+        vectors = [...vectors, ...(await generateEmbeddings(queries))];
+      } else {
+        vectors = await generateEmbeddings(queries);
+      }
+    }
+
+    const similar = await findSimilar(vectors!, num || 5);
 
     return new Response(JSON.stringify(similar), {
       status: 200,
