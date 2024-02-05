@@ -11,9 +11,10 @@ import {
 } from "./handlers";
 import fs from "fs";
 import { handleStoreRequest, storePipelines } from "./handlers/store";
-import { handleQueryRequest } from "./handlers/query";
+import { handleQueryRequest, populateQueryCache } from "./handlers/query";
 import { entryHandler, indexHandler } from "./ui/handlers";
 import { handleDeleteRequest } from "./handlers/delete";
+import { populateCodeCache } from "../tools/jsvm";
 
 export let metadataList: any[] = [];
 
@@ -143,9 +144,41 @@ export const validateAuthToken = (req: Request) => {
   return true;
 };
 
+// const buildsMatchers = new Map<string, () => Response>();
+
+// const init = async () => {
+//   console.log("BUILDING UI");
+//   const builds = await Bun.build({
+//     entrypoints: ["./src/server/ui/hydrate.tsx"],
+//     target: "browser",
+//     splitting: true,
+//     minify: {
+//       identifiers: true,
+//       syntax: true,
+//       whitespace: true,
+//     },
+//   });
+
+//   for (const build of builds.outputs) {
+//     buildsMatchers.set(
+//       build.path.substring(1),
+//       () =>
+//         new Response(build.stream(), {
+//           headers: {
+//             "Content-Type": build.type,
+//           },
+//         })
+//     );
+//   }
+
+//   console.log("WRITING UI");
+// };
+
 export const brainServer = async () => {
   // TODO go through all the files and make sure they
   // have the right metadata according to their type
+  // await init();
+
   const port = process.env.PORT ?? 8000;
 
   Bun.serve({
@@ -180,3 +213,5 @@ export const brainServer = async () => {
 };
 
 runPipelineOnAllFiles();
+populateCodeCache();
+populateQueryCache();

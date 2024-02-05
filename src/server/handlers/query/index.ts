@@ -13,13 +13,40 @@ import { randomUUID } from "node:crypto";
 import { keywordSearch } from "../../../tools/keyword";
 import { execute } from "../../../tools/jsvm";
 import { runCodeCompletion, runJsonCompletion } from "../../../cognition";
+import fs from "fs";
+import { hash } from "../../../misc/misc";
+
+const QUERY_CACHE_PATH = `${process.env
+  .BRAIN_STORAGE_ROOT!}/queryCompletionCache.json`;
 
 export const QueryRequestSchema = z.object({
   query: z.string(),
   schema: z.any().optional(),
+  cacheFor: z.number().optional(),
+  force: z.boolean().optional(),
 });
 
-const cache = {};
+type CachedQueryCompletion = {
+  query: string;
+  completion: any;
+  cachedAt: number;
+  cacheFor: number; // default is 1 week
+};
+
+export let queryCompletionCache: Record<string, any> = {};
+
+export const populateQueryCache = async () => {
+  if (!fs.existsSync(QUERY_CACHE_PATH)) return;
+  try {
+    const fileQueryCache = await fs.promises.readFile(
+      QUERY_CACHE_PATH,
+      "utf-8"
+    );
+    queryCompletionCache = JSON.parse(fileQueryCache);
+  } catch (e) {
+    console.error("Error populating query cache: ", e);
+  }
+};
 
 // todo queries:
 // what have i been doing
@@ -98,6 +125,25 @@ export const handleQueryRequest = async (request: Request) => {
     const reqData = await request.json();
     const queryRequest = QueryRequestSchema.parse(reqData);
 
+    const hashedReq = hash(
+      JSON.stringify({ query: queryRequest.query, schema: queryRequest.schema })
+    );
+
+    const cachedQuery = queryCompletionCache[hashedReq];
+    const cacheExpired = cachedQuery
+      ? Date.now() - cachedQuery.cachedAt > cachedQuery.cacheFor
+      : true;
+
+    if (!queryRequest.force && cachedQuery && !cacheExpired) {
+      console.log("Using cached query completion");
+      response = cachedQuery.completion;
+      return new Response(JSON.stringify(response), { status: 200 });
+    }
+
+    console.log(
+      `Generating new completion, cache expired: ${cacheExpired} forced: ${queryRequest.force} cachedQuery: ${cachedQuery}`
+    );
+
     const metadata = metadataList.map((m: any) => ({
       created: m.created,
       date: dayjs(m.created * 1000).format("MMM D, YYYY - h:mma"),
@@ -142,6 +188,15 @@ export const handleQueryRequest = async (request: Request) => {
     // return new Response(JSON.stringify({ inferenceNeeded, keywords, code }), {
     //   status: 200,
     // });
+
+    // cache the completion
+    const cacheFor = queryRequest.cacheFor || 604800000; // default is 1 week
+    queryCompletionCache[hashedReq] = {
+      query: queryRequest.query,
+      completion: data,
+      cachedAt: Date.now(),
+      cacheFor,
+    };
 
     return new Response(
       JSON.stringify({
