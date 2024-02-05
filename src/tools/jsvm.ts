@@ -10,17 +10,15 @@ const CODE_CACHE_PATH = `${process.env
 
 export let codeCompletionCache: Record<string, string> = {};
 
-const populateCodeCache = async () => {
+export const populateCodeCache = async () => {
   if (!fs.existsSync(CODE_CACHE_PATH)) return;
   try {
     const fileCodeCache = await Bun.file(CODE_CACHE_PATH).text();
+    codeCompletionCache = JSON.parse(fileCodeCache);
   } catch (e) {
     console.error("Error populating code cache: ", e);
   }
 };
-
-// populate codeCompletionCache from disk
-populateCodeCache();
 
 export const executeQuery = async (query: string) => {
   const queryHash = hash(query);
@@ -49,12 +47,16 @@ export const executeQuery = async (query: string) => {
     } catch {
       console.error("Error parsing code completion: ", codeCompletion);
     }
-    codeCompletionCache[queryHash] = code;
-    Bun.write(CODE_CACHE_PATH, JSON.stringify(codeCompletionCache));
   }
 
   console.log("Executing code: ", code);
   const execResult = execute(code, metadataList);
+
+  if (execResult) {
+    codeCompletionCache[queryHash] = code;
+    Bun.write(CODE_CACHE_PATH, JSON.stringify(codeCompletionCache));
+  }
+
   const result = execResult ? execResult : { text: code };
   return result;
 };
