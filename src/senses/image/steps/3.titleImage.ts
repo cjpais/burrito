@@ -23,10 +23,10 @@ export const titleImageStep: Step<Input, Output> = {
     return true;
   },
   run: async (metadata) => {
-    const title = await generateCompletion(
-      `you are excellent at writing titles. proivide a singular title for the text`,
-      metadata.caption
-    );
+    const title = await generateCompletion({
+      systemPrompt: `you are excellent at writing titles.å proivide a singular title for the text`,
+      userPrompt: metadata.caption,
+    });
 
     if (!title) return metadata;
 
