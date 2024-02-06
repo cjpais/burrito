@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import fs from "fs";
 import { FileMetadata, getFileInfo } from "../memory/files";
 import { CompletionParams } from ".";
+import { ChatCompletion } from "openai/resources/index.mjs";
 
 // TODO should this be in 'understanding' or something? TBD
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -34,12 +35,16 @@ export const generateCompletion = async ({
           },
         ]
       : undefined,
+    stream,
   });
 
+  if (stream) return result;
+  const message = (result as ChatCompletion).choices[0].message;
+
   const response =
-    schema && result.choices[0].message.tool_calls
-      ? result.choices[0].message.tool_calls[0].function.arguments
-      : result.choices[0].message.content;
+    schema && message.tool_calls
+      ? message.tool_calls[0].function.arguments
+      : message.content;
 
   return response;
 };

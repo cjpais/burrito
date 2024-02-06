@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { CompletionParams } from ".";
+import { ChatCompletion } from "openai/resources/index.mjs";
 
 const together = new OpenAI({
   apiKey: process.env.TOGETHER_API_KEY,
@@ -10,6 +11,7 @@ export const generateTogetherCompletion = async ({
   systemPrompt = "You are a helpful assistant.",
   userPrompt,
   model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
+  stream = false,
 }: CompletionParams) => {
   const result = await together.chat.completions.create({
     model: model,
@@ -21,9 +23,12 @@ export const generateTogetherCompletion = async ({
     // stop: ["[/INST]", "</s>"],
     temperature: 0.3,
     top_p: 0.7,
+    stream,
   });
 
-  const response = result.choices[0].message.content;
+  if (stream) return result;
+
+  const response = (result as ChatCompletion).choices[0].message.content;
 
   return response;
 };
