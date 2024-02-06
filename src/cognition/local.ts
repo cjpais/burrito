@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { FileMetadata, getFileInfo } from "../memory/files";
 import { CompletionParams } from ".";
+import { ChatCompletion } from "openai/resources/index.mjs";
 
 const local = new OpenAI({
   apiKey: "sk-no-key",
@@ -11,6 +12,7 @@ export const generateLocalCompletion = async ({
   systemPrompt = "You are a helpful assistant.",
   userPrompt,
   model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
+  stream = false,
 }: CompletionParams) => {
   const result = await local.chat.completions.create({
     model: model,
@@ -21,9 +23,12 @@ export const generateLocalCompletion = async ({
     max_tokens: 32000,
     // stop: ["[/INST]", "</s>"],
     temperature: 0.3,
+    stream,
   });
 
-  const response = result.choices[0].message.content;
+  if (stream) return result;
+
+  const response = (result as ChatCompletion).choices[0].message.content;
 
   return response;
 };
