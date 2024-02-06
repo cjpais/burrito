@@ -15,7 +15,7 @@ import { generateTogetherCompletion } from "../../../cognition/together";
 type ModelParams = {
   rl: number;
   name: string;
-  func: (systemPromp: string, userPrompt: string) => Promise<string>;
+  func: (systemPrompt: string, userPrompt: string) => Promise<string>;
   //   func: (systemPrompt: string, message: string, schema?: any) => Promise<any>;
 };
 
@@ -76,6 +76,7 @@ const MODELS: Record<string, ModelParams> = {
 const TransformRequestSchema = z.object({
   hashes: z.array(z.string()).optional(),
   prompt: z.string(),
+  systemPrompt: z.string().optional(),
   model: z
     .enum(["gpt4", "gpt3.5", "mistral7b", "mixtral"])
     .optional()
@@ -125,7 +126,7 @@ export const handleTransformRequest = async (request: Request) => {
   }
 
   const body = await request.json();
-  const { hashes, prompt, save, force, model } =
+  const { hashes, prompt, save, force, model, systemPrompt } =
     TransformRequestSchema.parse(body);
 
   let data = metadataList;
@@ -149,7 +150,7 @@ export const handleTransformRequest = async (request: Request) => {
   const queries = data.map((d) => async () => ({
     hash: d.hash,
     completion: await completionFunc(
-      "You are a helpful assistant. You always respond in JSON.",
+      systemPrompt ? systemPrompt : "You are a helpful assistant.",
       `${prompt}\n\n${JSON.stringify(d, null, 2)}`
     ),
   }));
