@@ -95,6 +95,9 @@ function rateLimitedQueryExecutor<T>(
   queries: (() => Promise<T>)[],
   maxPerSecond: number
 ): Promise<T[]> {
+  console.log(
+    `Rate limiting ${queries.length} queries to ${maxPerSecond} per second`
+  );
   let index = 0; // Track the current index of the queries array
   const allPromises: Promise<T>[] = []; // Store all initiated query promises
 
@@ -108,6 +111,7 @@ function rateLimitedQueryExecutor<T>(
 
       // Initiate up to 'maxPerSecond' queries in parallel and store their promises
       for (let i = 0; i < maxPerSecond && index < queries.length; i++) {
+        console.log(`Initiating query ${index + 1} of ${queries.length}`);
         const queryPromise = queries[index++]();
         allPromises.push(queryPromise);
         queryPromise.catch(console.error); // Optionally log errors without stopping other queries
