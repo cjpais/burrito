@@ -1,20 +1,21 @@
 import OpenAI from "openai";
+import { CompletionParams } from ".";
 
 const together = new OpenAI({
   apiKey: process.env.TOGETHER_API_KEY,
   baseURL: "https://api.together.xyz/v1",
 });
 
-export const generateTogetherCompletion = async (
-  systemPrompt: string,
-  message: string,
-  model: string = "mistralai/Mixtral-8x7B-Instruct-v0.1"
-) => {
+export const generateTogetherCompletion = async ({
+  systemPrompt = "You are a helpful assistant.",
+  userPrompt,
+  model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
+}: CompletionParams) => {
   const result = await together.chat.completions.create({
     model: model,
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: message },
+      { role: "user", content: userPrompt },
     ],
     // max_tokens: 32000,
     // stop: ["[/INST]", "</s>"],

@@ -1,15 +1,11 @@
 import { generateCompletion } from "./openai";
 
-export const summarize = async (
-  text: string,
-  summaryLength: string = "4 short sentences"
-) => {
-  return generateCompletion(
-    `You are excellent at summarizing. Summarize the following text into ${summaryLength}. If the text is shorter than ${summaryLength}, output the text as it was given to you.`,
-    text,
-    null,
-    "gpt-4-1106-preview"
-  );
+export type CompletionParams = {
+  systemPrompt?: string;
+  userPrompt: string;
+  model?: string;
+  schema?: any;
+  stream?: boolean;
 };
 
 export type RunCompletionParams = {
@@ -21,19 +17,29 @@ export type RunCompletionParams = {
 
 const CODE_REGEX = /```.*?\n([\s\S]*?)```/;
 
+export const summarize = async (
+  text: string,
+  summaryLength: string = "4 short sentences"
+) => {
+  return generateCompletion({
+    systemPrompt: `You are excellent at summarizing. Summarize the following text into ${summaryLength}. If the text is shorter than ${summaryLength}, output the text as it was given to you.`,
+    userPrompt: text,
+    model: "gpt-4-1106-preview",
+  });
+};
+
 export const runCodeCompletion = async ({
   name,
   systemPrompt = "You are a helpful assistant.",
   userPrompt = "",
   model = "gpt-4-1106-preview",
 }: RunCompletionParams): Promise<string | null> => {
-  const rawCompletion = (await generateCompletion(
+  const rawCompletion = (await generateCompletion({
     // const rawCompletion = (await generateTogetherCompletion(
     systemPrompt,
     userPrompt,
-    null,
-    model
-  )) as string;
+    model,
+  })) as string;
 
   const match = rawCompletion.match(CODE_REGEX);
   if (!match || match.length < 2) {
@@ -56,13 +62,12 @@ export const runJsonCompletion = async <T>({
   userPrompt = "",
   model = "gpt-4-1106-preview",
 }: RunCompletionParams): Promise<T | null> => {
-  const rawCompletion = (await generateCompletion(
+  const rawCompletion = (await generateCompletion({
     // const rawCompletion = (await generateTogetherCompletion(
     systemPrompt,
     userPrompt,
-    null,
-    model
-  )) as string;
+    model,
+  })) as string;
 
   let result: T;
 

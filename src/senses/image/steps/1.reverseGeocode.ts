@@ -45,15 +45,14 @@ export const reverseGeocodeStep: Step<Input, Output> = {
 
       const rawLocation = response.display_name;
 
-      output.location = await generateCompletion(
-        `you are a helpful assistant. you follow instructions carefully
+      output.location = await generateCompletion({
+        systemPrompt: `you are a helpful assistant. you follow instructions carefully
 
       you are to take the location text given and simplify it.
       you output only the simplified text. be as specific as possible while not revealing addresses. Output with dash inbeween the two most relevant places in the string`,
-        rawLocation,
-        null,
-        "gpt-3.5-turbo-1106"
-      );
+        userPrompt: rawLocation,
+        model: "gpt-3.5-turbo-1106",
+      });
       console.log("gpt location", output.location, "\ninput", rawLocation);
     }
 

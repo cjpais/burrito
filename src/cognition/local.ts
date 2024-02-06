@@ -1,4 +1,32 @@
+import OpenAI from "openai";
 import { FileMetadata, getFileInfo } from "../memory/files";
+import { CompletionParams } from ".";
+
+const local = new OpenAI({
+  apiKey: "sk-no-key",
+  baseURL: "http://192.168.1.210:8080/v1",
+});
+
+export const generateLocalCompletion = async ({
+  systemPrompt = "You are a helpful assistant.",
+  userPrompt,
+  model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
+}: CompletionParams) => {
+  const result = await local.chat.completions.create({
+    model: model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    max_tokens: 32000,
+    // stop: ["[/INST]", "</s>"],
+    temperature: 0.3,
+  });
+
+  const response = result.choices[0].message.content;
+
+  return response;
+};
 
 export const generateLocalImageCompletion = async ({
   systemPrompt,

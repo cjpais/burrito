@@ -23,10 +23,11 @@ export const addTitleStep: Step<SummarizedAudio, TitledAudio> = {
     return true;
   },
   run: async (metadata) => {
-    const title = (await generateCompletion(
-      "you are excellent at writing titles. proivide a singular title for the text.",
-      metadata.summary
-    )) as string;
+    const title = (await generateCompletion({
+      systemPrompt:
+        "you are excellent at writing titles. proivide a singular title for the text.",
+      userPrompt: metadata.summary,
+    })) as string;
     return {
       ...metadata,
       title,

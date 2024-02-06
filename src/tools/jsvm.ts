@@ -27,10 +27,10 @@ export const executeQuery = async (query: string) => {
   if (!code) {
     console.log("generating code completion");
     // const completion = await generateCompletion(CODE_SYSTEM_PROMPT, query);
-    const codeCompletion = (await generateCompletion(
-      CODE_SYSTEM_PROMPT,
-      query,
-      {
+    const codeCompletion = (await generateCompletion({
+      systemPrompt: CODE_SYSTEM_PROMPT,
+      userPrompt: query,
+      schema: {
         type: "object",
         properties: {
           code: {
@@ -40,8 +40,8 @@ export const executeQuery = async (query: string) => {
         },
         required: ["code"],
       },
-      "gpt-4-1106-preview"
-    )) as string;
+      model: "gpt-4-1106-preview",
+    })) as string;
     try {
       code = JSON.parse(codeCompletion as string).code;
     } catch {

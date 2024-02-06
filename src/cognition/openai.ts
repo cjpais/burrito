@@ -1,47 +1,23 @@
 import OpenAI from "openai";
 import fs from "fs";
 import { FileMetadata, getFileInfo } from "../memory/files";
+import { CompletionParams } from ".";
 
 // TODO should this be in 'understanding' or something? TBD
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const local = new OpenAI({
-  apiKey: "sk-no-key",
-  baseURL: "http://192.168.1.210:8080/v1",
-});
-
-export const generateLocalCompletion = async (
-  systemPrompt: string,
-  message: string,
-  model: string = "mistralai/Mixtral-8x7B-Instruct-v0.1"
-) => {
-  const result = await local.chat.completions.create({
-    model: model,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: message },
-    ],
-    max_tokens: 32000,
-    // stop: ["[/INST]", "</s>"],
-    temperature: 0.3,
-  });
-
-  const response = result.choices[0].message.content;
-
-  return response;
-};
-
-export const generateCompletion = async (
-  systemPrompt: string,
-  message: string,
-  schema?: any,
-  model: string = "gpt-3.5-turbo-1106"
-) => {
+export const generateCompletion = async ({
+  systemPrompt = "You are a helpful assistant.",
+  userPrompt,
+  schema,
+  model = "gpt-3.5-turbo-1106",
+  stream = false,
+}: CompletionParams) => {
   const result = await openai.chat.completions.create({
     model: model,
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: message },
+      { role: "user", content: userPrompt },
     ],
     tools: schema
       ? [

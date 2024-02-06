@@ -23,10 +23,10 @@ export const titleTextStep: Step<Input, Output> = {
   run: async (metadata) => {
     // TODO try to extract the title from the first lines of the text
 
-    const title = await generateCompletion(
-      `you are excellent at writing titles. proivide a singular title for the text`,
-      metadata.summary
-    );
+    const title = await generateCompletion({
+      systemPrompt: `you are excellent at writing titles. proivide a singular title for the text`,
+      userPrompt: metadata.summary,
+    });
 
     if (!title) return metadata;
 

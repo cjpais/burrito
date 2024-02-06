@@ -46,10 +46,11 @@ export const generateCompostStep: Step<Input, CompostedAudio> = {
       ...similar.map((item) => item.summary),
     ].join("\n\n");
 
-    const compost = (await generateCompletion(
-      "you are excellent at summarizing. think step by step. first figuring out the major themes in the first text. finding only related themes in the subsequent texts. then composing and summarizing those themes into a single text.",
-      summaries
-    )) as string;
+    const compost = (await generateCompletion({
+      systemPrompt:
+        "you are excellent at summarizing. think step by step. first figuring out the major themes in the first text. finding only related themes in the subsequent texts. then composing and summarizing those themes into a single text.",
+      userPrompt: summaries,
+    })) as string;
     return {
       ...metadata,
       compost,

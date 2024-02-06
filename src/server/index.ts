@@ -15,6 +15,8 @@ import { handleQueryRequest, populateQueryCache } from "./handlers/query";
 import { entryHandler, indexHandler } from "./ui/handlers";
 import { handleDeleteRequest } from "./handlers/delete";
 import { populateCodeCache } from "../tools/jsvm";
+import { handleEditRequest } from "./handlers/edit";
+import { handleTransformRequest } from "./handlers/transform";
 
 export let metadataList: any[] = [];
 
@@ -120,20 +122,6 @@ interface Routes {
   [path: string]: RouteHandler;
 }
 
-const routes: Routes = {
-  "^/?(?:p=([0-9]+))?$": indexHandler,
-  "^/[A-Fa-f0-9]{64}$": entryHandler,
-  "^/f/([^/]+)$": fileHandler,
-  "^/i/([^/]+)$": imageHandler,
-  "^/v/([^/]+)$": videoHandler,
-  "^/m/([^/]+)$": metadataHandler,
-  "^/store$": handleStoreRequest,
-  "^/delete$": handleDeleteRequest,
-  "^/query$": handleQueryRequest,
-  "^/query/embeddings$": handleEmbeddingsRequest,
-  "^/query/data$": handleDataRequest,
-};
-
 export const validateAuthToken = (req: Request) => {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
@@ -144,41 +132,23 @@ export const validateAuthToken = (req: Request) => {
   return true;
 };
 
-// const buildsMatchers = new Map<string, () => Response>();
-
-// const init = async () => {
-//   console.log("BUILDING UI");
-//   const builds = await Bun.build({
-//     entrypoints: ["./src/server/ui/hydrate.tsx"],
-//     target: "browser",
-//     splitting: true,
-//     minify: {
-//       identifiers: true,
-//       syntax: true,
-//       whitespace: true,
-//     },
-//   });
-
-//   for (const build of builds.outputs) {
-//     buildsMatchers.set(
-//       build.path.substring(1),
-//       () =>
-//         new Response(build.stream(), {
-//           headers: {
-//             "Content-Type": build.type,
-//           },
-//         })
-//     );
-//   }
-
-//   console.log("WRITING UI");
-// };
+const routes: Routes = {
+  "^/?(?:p=([0-9]+))?$": indexHandler,
+  "^/[A-Fa-f0-9]{64}$": entryHandler,
+  "^/f/([^/]+)$": fileHandler,
+  "^/i/([^/]+)$": imageHandler,
+  "^/v/([^/]+)$": videoHandler,
+  "^/m/([^/]+)$": metadataHandler,
+  "^/store$": handleStoreRequest,
+  "^/edit$": handleEditRequest,
+  "^/delete$": handleDeleteRequest,
+  "^/transform$": handleTransformRequest,
+  "^/query$": handleQueryRequest,
+  "^/query/embeddings$": handleEmbeddingsRequest,
+  "^/query/data$": handleDataRequest,
+};
 
 export const brainServer = async () => {
-  // TODO go through all the files and make sure they
-  // have the right metadata according to their type
-  // await init();
-
   const port = process.env.PORT ?? 8000;
 
   Bun.serve({
