@@ -15,6 +15,7 @@ import { generateTogetherCompletion } from "../../../cognition/together";
 type ModelParams = {
   rl: number;
   name: string;
+  func: (systemPromp: string, userPrompt: string) => Promise<string>;
   //   func: (systemPrompt: string, message: string, schema?: any) => Promise<any>;
 };
 
@@ -22,19 +23,53 @@ const MODELS: Record<string, ModelParams> = {
   gpt4: {
     rl: 75,
     name: "gpt4",
-    // func: generateCompletion
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "gpt-4-1106-preview",
+      })) as string,
   },
-  "mistral-medium": {
-    rl: 2,
-    name: "mistral-medium",
-  },
+  // "mistral-medium": {
+  //   rl: 2,
+  //   name: "mistral-medium",
+  //   func: (systemPrompt: string, userPrompt: string, stream: boolean) =>
+  //     generateCompletion({
+  //       systemPrompt,
+  //       userPrompt,
+  //       stream,
+  //       model: "gpt-4-1106-preview",
+  //     }),
+  // },
   mixtral: {
     rl: 50,
     name: "mixtral",
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateTogetherCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      })) as string,
+  },
+  mistral7b: {
+    rl: 50,
+    name: "mistral7b",
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateTogetherCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistralai/Mistral-7B-Instruct-v0.2",
+      })) as string,
   },
   "gpt3.5": {
     rl: 75,
     name: "gpt3.5",
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "gpt-3.5-turbo-0125",
+      })) as string,
   },
 };
 
@@ -42,7 +77,7 @@ const TransformRequestSchema = z.object({
   hashes: z.array(z.string()).optional(),
   prompt: z.string(),
   model: z
-    .enum(["gpt4", "mistral-medium", "mixtral", "gpt3.5"])
+    .enum(["gpt4", "gpt3.5", "mistral7b", "mixtral"])
     .optional()
     .default("mixtral"),
   save: z
@@ -52,9 +87,33 @@ const TransformRequestSchema = z.object({
     })
     .optional(),
   force: z.boolean().optional(),
+  // stream: z.boolean().optional().default(false),
 });
 
-const RATE_LIMIT_SEC = 2;
+function rateLimitedQueryExecutor<T>(
+  queries: (() => Promise<T>)[],
+  maxPerSecond: number
+): Promise<T[]> {
+  let index = 0; // Track the current index of the queries array
+  const allPromises: Promise<T>[] = []; // Store all initiated query promises
+
+  return new Promise((resolve, reject) => {
+    const intervalId = setInterval(() => {
+      if (index >= queries.length) {
+        clearInterval(intervalId); // Stop the interval when all queries are initiated
+        Promise.all(allPromises).then(resolve).catch(reject); // Wait for all queries to complete
+        return;
+      }
+
+      // Initiate up to 'maxPerSecond' queries in parallel and store their promises
+      for (let i = 0; i < maxPerSecond && index < queries.length; i++) {
+        const queryPromise = queries[index++]();
+        allPromises.push(queryPromise);
+        queryPromise.catch(console.error); // Optionally log errors without stopping other queries
+      }
+    }, 1000); // Set the interval to 1 second (1000 milliseconds)
+  });
+}
 
 export const handleTransformRequest = async (request: Request) => {
   if (request.method !== "POST") {
@@ -66,7 +125,8 @@ export const handleTransformRequest = async (request: Request) => {
   }
 
   const body = await request.json();
-  const { hashes, prompt, save, force } = TransformRequestSchema.parse(body);
+  const { hashes, prompt, save, force, model } =
+    TransformRequestSchema.parse(body);
 
   let data = metadataList;
 
@@ -85,29 +145,17 @@ export const handleTransformRequest = async (request: Request) => {
     text: m.audio ? m.audio.transcript : "",
   }));
 
-  console.log(data);
+  const completionFunc = MODELS[model].func;
+  const queries = data.map((d) => async () => ({
+    hash: d.hash,
+    completion: await completionFunc(
+      "You are a helpful assistant. You always respond in JSON.",
+      `${prompt}\n\n${JSON.stringify(d, null, 2)}`
+    ),
+  }));
 
-  const completion = (await generateCompletion({
-    systemPrompt:
-      "You will win $2000 and a puppy if you use the data to answer the person's question. ",
-    userPrompt: `Question: ${prompt}\n\nData: ${JSON.stringify(data, null, 2)}`,
-    model: "gpt-3.5-turbo-1106",
-    stream: true,
-  })) as Stream<ChatCompletionChunk>;
+  const results = await rateLimitedQueryExecutor(queries, MODELS[model].rl);
+  console.log(results);
 
-  return new Response(
-    new ReadableStream({
-      async start(controller) {
-        for await (const chunk of completion) {
-          if (chunk.choices[0].delta.content) {
-            controller.enqueue(chunk.choices[0].delta.content);
-          }
-        }
-
-        controller.close();
-      },
-    })
-  );
-
-  return new Response(JSON.stringify(data.map((d) => d.hash)), { status: 200 });
+  return new Response(JSON.stringify(results), { status: 200 });
 };
