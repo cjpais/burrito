@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { metadataList, validateAuthToken } from "../..";
 import { generateCompletion } from "../../../cognition/openai";
+import { Stream } from "openai/streaming.mjs";
+import { ChatCompletionChunk } from "openai/resources/index.mjs";
+import { execute } from "../../../tools/jsvm";
+import {
+  CODE_SYSTEM_PROMPT,
+  NEW_CODE_SYSTEM_PROMPT,
+} from "../../../misc/prompts";
+import { runCodeCompletion } from "../../../cognition";
+import dayjs from "dayjs";
+import { generateTogetherCompletion } from "../../../cognition/together";
 
 type ModelParams = {
   rl: number;
@@ -63,6 +73,41 @@ export const handleTransformRequest = async (request: Request) => {
   if (hashes) {
     data = data.filter((m) => hashes.includes(m.hash));
   }
+
+  data = data.map((m: any) => ({
+    created: m.created,
+    date: dayjs(m.created * 1000).format("MMM D, YYYY - h:mma"),
+    hash: m.hash,
+    title: m.title,
+    summary: m.summary,
+    description: m.description,
+    caption: m.caption,
+    text: m.audio ? m.audio.transcript : "",
+  }));
+
+  console.log(data);
+
+  const completion = (await generateCompletion({
+    systemPrompt:
+      "You will win $2000 and a puppy if you use the data to answer the person's question. ",
+    userPrompt: `Question: ${prompt}\n\nData: ${JSON.stringify(data, null, 2)}`,
+    model: "gpt-3.5-turbo-1106",
+    stream: true,
+  })) as Stream<ChatCompletionChunk>;
+
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        for await (const chunk of completion) {
+          if (chunk.choices[0].delta.content) {
+            controller.enqueue(chunk.choices[0].delta.content);
+          }
+        }
+
+        controller.close();
+      },
+    })
+  );
 
   return new Response(JSON.stringify(data.map((d) => d.hash)), { status: 200 });
 };

@@ -21,7 +21,14 @@ const QUERY_CACHE_PATH = `${process.env
 
 export const QueryRequestSchema = z.object({
   query: z.string(),
+  // hashes: z.array(z.string()).optional(),
   schema: z.any().optional(),
+  // save: z
+  //   .object({
+  //     app: z.string(),
+  //     key: z.string(),
+  //   })
+  //   .optional(),
   cacheFor: z.number().optional(),
   force: z.boolean().optional(),
 });
@@ -144,12 +151,19 @@ export const handleQueryRequest = async (request: Request) => {
       `Generating new completion, cache expired: ${cacheExpired} forced: ${queryRequest.force} cachedQuery: ${cachedQuery}`
     );
 
-    const metadata = metadataList.map((m: any) => ({
+    let metadata = metadataList;
+    // if (queryRequest.hashes) {
+    //   metadata = metadata.filter((m) => queryRequest.hashes.includes(m.hash));
+    // }
+
+    metadata = metadata.map((m: any) => ({
       created: m.created,
       date: dayjs(m.created * 1000).format("MMM D, YYYY - h:mma"),
       hash: m.hash,
       title: m.title,
       summary: m.summary,
+      description: m.description,
+      caption: m.caption,
       text: m.audio ? m.audio.transcript : "",
       embedding: m.embedding,
     }));
