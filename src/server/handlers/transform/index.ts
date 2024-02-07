@@ -8,7 +8,7 @@ import {
   CODE_SYSTEM_PROMPT,
   NEW_CODE_SYSTEM_PROMPT,
 } from "../../../misc/prompts";
-import { runCodeCompletion } from "../../../cognition";
+import { extractJSON, runCodeCompletion } from "../../../cognition";
 import dayjs from "dayjs";
 import { generateTogetherCompletion } from "../../../cognition/together";
 
@@ -54,12 +54,13 @@ const MODELS: Record<string, ModelParams> = {
   mistral7b: {
     rl: 50,
     name: "mistral7b",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateTogetherCompletion({
+    func: async (systemPrompt: string, userPrompt: string) => {
+      return (await generateTogetherCompletion({
         systemPrompt,
         userPrompt,
         model: "mistralai/Mistral-7B-Instruct-v0.2",
-      })) as string,
+      })) as string;
+    },
   },
   "gpt3.5": {
     rl: 75,
@@ -160,7 +161,11 @@ export const handleTransformRequest = async (request: Request) => {
   }));
 
   const results = await rateLimitedQueryExecutor(queries, MODELS[model].rl);
+  const response = results.map((r) => ({
+    hash: r.hash,
+    completion: extractJSON(r.completion),
+  }));
   console.log(results);
 
-  return new Response(JSON.stringify(results), { status: 200 });
+  return new Response(JSON.stringify(response), { status: 200 });
 };
