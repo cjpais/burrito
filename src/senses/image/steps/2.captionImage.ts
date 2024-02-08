@@ -27,21 +27,29 @@ export const captionImageStep: Step<FileMetadata, Output> = {
     return true;
   },
   run: async (metadata) => {
+    let caption = "";
+    let description = "";
+    let extractedText = "";
     const resp = await generateImageCompletion({
       prompt: DESCRIBE_IMAGE_PROMPT,
       image: metadata,
     });
 
     // if failure, just return metadata as is (need to mark as failed)
-    if (!resp) return metadata;
-    const json = extractJSON<ImageDescription>(resp);
-    if (!json) return metadata; // TODO retry here.
+    // if (!resp) return metadata;
+    if (resp) {
+      const json = extractJSON<ImageDescription>(resp);
+      caption = json?.caption ?? "";
+      description = json?.description ?? "";
+      extractedText = json?.extractedText ?? "";
+    }
+    // if (!json) return metadata; // TODO retry here.
 
     const output = {
       ...metadata,
-      caption: json.caption,
-      description: json.description,
-      extractedText: json.extractedText,
+      caption,
+      description,
+      extractedText,
     };
     return output;
   },
