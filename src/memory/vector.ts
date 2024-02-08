@@ -80,6 +80,7 @@ export const findSimilar = async (
       type: meta.type,
       summary: meta.summary,
       description: meta.description,
+      created: meta.created,
       title: meta.title,
     });
   }
@@ -92,6 +93,7 @@ export const findSimilar = async (
       summary: string;
       title: string;
       type: string;
+      created: number;
       description: string;
     }
     // { hash: string; distance: number; title: string }

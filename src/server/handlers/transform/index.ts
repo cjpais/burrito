@@ -1,14 +1,7 @@
 import { z } from "zod";
 import { metadataList, validateAuthToken } from "../..";
 import { generateCompletion } from "../../../cognition/openai";
-import { Stream } from "openai/streaming.mjs";
-import { ChatCompletionChunk } from "openai/resources/index.mjs";
-import { execute } from "../../../tools/jsvm";
-import {
-  CODE_SYSTEM_PROMPT,
-  NEW_CODE_SYSTEM_PROMPT,
-} from "../../../misc/prompts";
-import { extractJSON, runCodeCompletion } from "../../../cognition";
+import { extractJSON } from "../../../cognition";
 import dayjs from "dayjs";
 import { generateTogetherCompletion } from "../../../cognition/together";
 
