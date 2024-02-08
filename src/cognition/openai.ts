@@ -86,11 +86,12 @@ export const generateImageCompletion = async ({
 }: {
   systemPrompt?: string;
   prompt?: string;
-  image: FileMetadata;
+  image: string;
   maxTokens?: number;
 }) => {
-  const fileInfo = await getFileInfo(image);
-  const buf = await Bun.file(fileInfo.path).arrayBuffer();
+  const file = Bun.file(image);
+  const mime = file.type;
+  const buf = await file.arrayBuffer();
   const b64 = Buffer.from(buf).toString("base64");
 
   const response = await openai.chat.completions.create({
@@ -106,7 +107,7 @@ export const generateImageCompletion = async ({
           {
             type: "image_url",
             image_url: {
-              url: `data:${fileInfo.mime};base64,${b64}`,
+              url: `data:${mime};base64,${b64}`,
             },
           },
           { type: "text", text: prompt || "caption this image" },

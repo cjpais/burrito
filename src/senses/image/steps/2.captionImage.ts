@@ -10,26 +10,34 @@ import { generateImageCompletion } from "../../../cognition/openai";
 import { DESCRIBE_IMAGE_PROMPT, ImageDescription } from "../../../misc/prompts";
 import { extractJSON } from "../../../cognition";
 
-const OutputSchema = FileMetadataSchema.extend({
+const InputSchema = FileMetadataSchema.extend({
+  compressed: z.string(),
+});
+
+const OutputSchema = InputSchema.extend({
   caption: z.string(),
   description: z.string(),
   extractedText: z.string().or(z.null()).optional(),
 });
 
+type Input = z.infer<typeof InputSchema>;
 type Output = z.infer<typeof OutputSchema>;
 
-export const captionImageStep: Step<FileMetadata, Output> = {
+export const captionImageStep: Step<Input, Output> = {
   name: "captionImage",
-  inputType: FileMetadataSchema,
+  inputType: InputSchema,
   outputType: OutputSchema,
   validate: async (metadata) => {
     // return false;
     return true;
   },
   run: async (metadata) => {
+    const fileInfo = await getFileInfo(metadata);
+    const image = `${fileInfo.dir}/${metadata.compressed}`;
+
     const resp = await generateImageCompletion({
       prompt: DESCRIBE_IMAGE_PROMPT,
-      image: metadata,
+      image: image,
     });
 
     // if failure, just return metadata as is (need to mark as failed)
