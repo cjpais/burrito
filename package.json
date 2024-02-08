@@ -10,7 +10,8 @@
     "bun-types": "latest"
   },
   "scripts": {
-    "dev": "bun --watch run index.ts"
+    "dev": "bun --watch run index.ts",
+    "server": "bun run index.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
