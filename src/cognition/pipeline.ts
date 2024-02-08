@@ -75,11 +75,13 @@ export const processPipeline = async <Input>(
     const newOutput = await step.run(output);
     const parsedNewOutput = step.outputType.safeParse(newOutput);
     if (!parsedNewOutput.success) {
-      throw new Error(
+      console.error(
         // `Output of step is not valid.\nOutput: ${JSON.stringify(
         //   newOutput
         // )}\nStep: ${step.name}\nExpected: ${JSON.stringify(step.outputType)}`
-        `Output of step is not valid.\nError: ${parsedNewOutput.error.message}`
+        chalk.red(
+          `Output of step is not valid.\nError: ${parsedNewOutput.error.message}`
+        )
       );
     }
     output = newOutput;
