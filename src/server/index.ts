@@ -68,6 +68,8 @@ const runPipelineOnAllFiles = async () => {
         JSON.parse(await Bun.file(`${fileDir}/metadata.json`).text())
       );
 
+      console.log(`${colorType(metadata.type)} pipeline for ${metadata.hash}`);
+
       // const file = await Bun.file(`${fileDir}/data.${metadata.ext}`);
 
       const pipeline = storePipelines.get(metadata.type);
@@ -76,11 +78,7 @@ const runPipelineOnAllFiles = async () => {
 
         const start = Date.now();
         const newMetadata = await pipeline(metadata);
-        console.log(
-          `${colorType(metadata.type)} pipeline for ${metadata.hash} took ${
-            Date.now() - start
-          }ms`
-        );
+        console.log(`\ttook ${Date.now() - start}ms`);
 
         metadata.type === "text" && console.log(metadata);
         metadata.type === "text" && console.log(newMetadata);
