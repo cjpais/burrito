@@ -83,19 +83,21 @@ export const getMetadataStep: Step<Metadata, Metadata> = {
       const file = await Bun.file(fileInfo.path).arrayBuffer();
       if (metadata.ext !== "webp") {
         const exif = await exifr.parse(file);
-        const {
-          Make,
-          Model,
-          DateTimeOriginal,
-          // OffsetTimeOriginal,
-          latitude,
-          longitude,
-        } = exif;
-        metadata.created = dayjs(DateTimeOriginal).unix();
-        latitude && (metadata.latitude = latitude);
-        longitude && (metadata.longitude = longitude);
-        metadata.image = {};
-        Make && Model && (metadata.image.camera = `${Make} ${Model}`);
+        if (exif) {
+          const {
+            Make,
+            Model,
+            DateTimeOriginal,
+            // OffsetTimeOriginal,
+            latitude,
+            longitude,
+          } = exif;
+          metadata.created = dayjs(DateTimeOriginal).unix();
+          latitude && (metadata.latitude = latitude);
+          longitude && (metadata.longitude = longitude);
+          metadata.image = {};
+          Make && Model && (metadata.image.camera = `${Make} ${Model}`);
+        }
       }
     }
 
