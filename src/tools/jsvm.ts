@@ -25,9 +25,17 @@ export const populateCodeCache = async () => {
 
 export const executeQuery = async (query: string) => {
   const queryHash = hash(query);
-  let code = codeCompletionCache[queryHash]
-    ? codeCompletionCache[queryHash].code
-    : "";
+  let code = null;
+
+  if (codeCompletionCache[queryHash]) {
+    if (codeCompletionCache[queryHash].code) {
+      code = codeCompletionCache[queryHash].code;
+    } else {
+      // fix up any existing cache entries
+      code = codeCompletionCache[queryHash];
+      codeCompletionCache[queryHash] = { code, query };
+    }
+  }
 
   if (!code) {
     console.log("generating code completion");
