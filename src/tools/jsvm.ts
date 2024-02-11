@@ -8,7 +8,10 @@ import fs from "fs";
 const CODE_CACHE_PATH = `${process.env
   .BRAIN_STORAGE_ROOT!}/codeCompletionCache.json`;
 
-export let codeCompletionCache: Record<string, string> = {};
+export let codeCompletionCache: Record<
+  string,
+  { code: string; query: string }
+> = {};
 
 export const populateCodeCache = async () => {
   if (!fs.existsSync(CODE_CACHE_PATH)) return;
@@ -22,7 +25,9 @@ export const populateCodeCache = async () => {
 
 export const executeQuery = async (query: string) => {
   const queryHash = hash(query);
-  let code = codeCompletionCache[queryHash];
+  let code = codeCompletionCache[queryHash]
+    ? codeCompletionCache[queryHash].code
+    : "";
 
   if (!code) {
     console.log("generating code completion");
@@ -53,7 +58,7 @@ export const executeQuery = async (query: string) => {
   const execResult = execute(code, metadataList);
 
   if (execResult) {
-    codeCompletionCache[queryHash] = code;
+    codeCompletionCache[queryHash] = { code, query };
     Bun.write(CODE_CACHE_PATH, JSON.stringify(codeCompletionCache));
   }
 
