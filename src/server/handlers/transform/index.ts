@@ -71,6 +71,8 @@ const TransformRequestSchema = z.object({
   hashes: z.array(z.string()).optional(),
   prompt: z.string(),
   systemPrompt: z.string().optional(),
+  mode: z.enum(["each", "all"]).optional().default("each"),
+  completionType: z.enum(["json", "text"]).optional().default("json"),
   model: z
     .enum(["gpt4", "gpt3.5", "mistral7b", "mixtral"])
     .optional()
@@ -124,8 +126,16 @@ export const handleTransformRequest = async (request: Request) => {
   }
 
   const body = await request.json();
-  const { hashes, prompt, save, force, model, systemPrompt } =
-    TransformRequestSchema.parse(body);
+  const {
+    hashes,
+    prompt,
+    save,
+    force,
+    model,
+    systemPrompt,
+    mode,
+    completionType,
+  } = TransformRequestSchema.parse(body);
 
   let data = metadataList;
 
@@ -145,20 +155,33 @@ export const handleTransformRequest = async (request: Request) => {
   }));
 
   const completionFunc = MODELS[model].func;
-  const queries = data.map((d) => async () => ({
-    hash: d.hash,
-    completion: await completionFunc(
+
+  if (mode === "each") {
+    const queries = data.map((d) => async () => ({
+      hash: d.hash,
+      completion: await completionFunc(
+        systemPrompt ? systemPrompt : "You are a helpful assistant.",
+        `${prompt}\n\n${JSON.stringify(d, null, 2)}`
+      ),
+    }));
+
+    const results = await rateLimitedQueryExecutor(queries, MODELS[model].rl);
+    const response = results.map((r) => ({
+      hash: r.hash,
+      completion:
+        completionType === "json" ? extractJSON(r.completion) : r.completion,
+    }));
+    console.log(results);
+
+    return new Response(JSON.stringify(response), { status: 200 });
+  } else {
+    const completion = await completionFunc(
       systemPrompt ? systemPrompt : "You are a helpful assistant.",
-      `${prompt}\n\n${JSON.stringify(d, null, 2)}`
-    ),
-  }));
+      `${prompt}\n\n${JSON.stringify(data, null, 2)}`
+    );
 
-  const results = await rateLimitedQueryExecutor(queries, MODELS[model].rl);
-  const response = results.map((r) => ({
-    hash: r.hash,
-    completion: extractJSON(r.completion),
-  }));
-  console.log(results);
-
-  return new Response(JSON.stringify(response), { status: 200 });
+    const response =
+      completionType === "json" ? extractJSON(completion) : completion;
+    return new Response(JSON.stringify(response), { status: 200 });
+  }
 };
