@@ -23,11 +23,11 @@ export const populateCodeCache = async () => {
   }
 };
 
-export const executeQuery = async (query: string) => {
+export const executeQuery = async (query: string, force: boolean = false) => {
   const queryHash = hash(query);
   let code = null;
 
-  if (codeCompletionCache[queryHash]) {
+  if (codeCompletionCache[queryHash] && !force) {
     if (codeCompletionCache[queryHash].code) {
       code = codeCompletionCache[queryHash].code;
     } else {

@@ -214,9 +214,9 @@ export const handleDataRequest = async (request: Request) => {
 
   try {
     const body = await request.json();
-    const { query } = QueryRequestSchema.parse(body);
+    const { query, force } = QueryRequestSchema.parse(body);
 
-    const result = await executeQuery(query);
+    const result = await executeQuery(query, force);
 
     return new Response(JSON.stringify(result), {
       status: 200,
