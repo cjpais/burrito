@@ -151,6 +151,7 @@ export const handleTransformRequest = async (request: Request) => {
     summary: m.summary,
     description: m.description,
     caption: m.caption,
+    userData: m.userData,
     text: m.audio ? m.audio.transcript : "",
   }));
 
