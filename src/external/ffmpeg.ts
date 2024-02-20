@@ -49,7 +49,7 @@ export const cleanAudio = async (
   return new Promise((resolve, reject) => {
     ffmpeg(input)
       .audioFilter(
-        "silenceremove=start_periods=1:stop_periods=-1:stop_duration=5:start_threshold=-35dB:stop_threshold=-35dB"
+        "silenceremove=start_periods=1:stop_periods=-1:stop_duration=5:start_threshold=-40dB:stop_threshold=-40dB"
       )
       .audioFilter("highpass=f=80")
       .audioFilter("lowpass=f=8000")
