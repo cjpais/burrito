@@ -11,6 +11,7 @@ export const FileMetadataSchema = z.object({
   created: z.number(),
   added: z.number(),
   originalName: z.string(),
+  userData: z.any().optional(),
 });
 
 export type FileMetadata = z.infer<typeof FileMetadataSchema>;

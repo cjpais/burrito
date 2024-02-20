@@ -4,11 +4,13 @@ import { summarize } from "../../../cognition";
 
 const InputSchema = z.object({
   text: z.string(),
+  userData: z.any().optional(),
 });
 
 const OutputSchema = z.object({
   text: z.string(),
   summary: z.string(),
+  userData: z.any().optional(),
 });
 
 type Input = z.infer<typeof InputSchema>;
@@ -19,7 +21,10 @@ export const summarizeTextStep: Step<Input, Output> = {
   inputType: InputSchema,
   outputType: OutputSchema,
   run: async (metadata) => {
-    const summary = await summarize(metadata.text);
+    const summary = await summarize(metadata.text, {
+      userData:
+        typeof metadata.userData === "string" ? metadata.userData : undefined,
+    });
 
     if (!summary) {
       return metadata;

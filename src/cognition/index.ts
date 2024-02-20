@@ -17,14 +17,27 @@ export type RunCompletionParams = {
 
 const CODE_REGEX = /```.*?\n([\s\S]*?)```/;
 
+type SummarizeParams = {
+  summaryLength?: string;
+  userData?: string;
+  model?: string;
+};
+
 export const summarize = async (
   text: string,
-  summaryLength: string = "4 short sentences"
+  params: SummarizeParams = {
+    summaryLength: "4 short sentences",
+    model: "gpt-4-0125-preview",
+  }
 ) => {
+  const toSummarize = params.userData
+    ? `Here is some user provided context: ${params.userData}\n${text}`
+    : text;
+
   return generateCompletion({
-    systemPrompt: `You are excellent at summarizing. Summarize the following text into ${summaryLength}. If the text is shorter than ${summaryLength}, output the text as it was given to you.`,
-    userPrompt: text,
-    model: "gpt-4-1106-preview",
+    systemPrompt: `You are excellent at summarizing. Summarize the following text into ${params.summaryLength}. If the text is shorter than ${params.summaryLength}, output the text as it was given to you.`,
+    userPrompt: toSummarize,
+    model: params.model,
   });
 };
 

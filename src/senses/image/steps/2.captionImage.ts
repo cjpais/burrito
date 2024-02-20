@@ -1,4 +1,3 @@
-import { Input } from "quicktype-core";
 import { Step } from "../../../cognition/pipeline";
 import z from "zod";
 import {
@@ -7,8 +6,12 @@ import {
   getFileInfo,
 } from "../../../memory/files";
 import { generateImageCompletion } from "../../../cognition/openai";
-import { DESCRIBE_IMAGE_PROMPT, ImageDescription } from "../../../misc/prompts";
+import {
+  DESCRIBE_IMAGE_PROMPT_TEMPLATE,
+  ImageDescription,
+} from "../../../misc/prompts";
 import { extractJSON } from "../../../cognition";
+import Mustache from "mustache";
 
 const InputSchema = FileMetadataSchema.extend({
   compressed: z.string(),
@@ -35,8 +38,15 @@ export const captionImageStep: Step<Input, Output> = {
     const fileInfo = await getFileInfo(metadata);
     const image = `${fileInfo.dir}/${metadata.compressed}`;
 
+    const prompt = Mustache.render(DESCRIBE_IMAGE_PROMPT_TEMPLATE, {
+      additional:
+        typeof metadata.userData === "string"
+          ? ` using the context: ${metadata.userData}`
+          : "",
+    });
+
     const resp = await generateImageCompletion({
-      prompt: DESCRIBE_IMAGE_PROMPT,
+      prompt,
       image: image,
     });
 

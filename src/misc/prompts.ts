@@ -394,8 +394,8 @@ Answer: \`\`\`json
 \`\`\`
 `;
 
-export const DESCRIBE_IMAGE_PROMPT = `
-please help me fill out this json
+export const DESCRIBE_IMAGE_PROMPT_TEMPLATE = `
+please help me fill out this json{{{additional}}}
 
 \`\`\`json
 {

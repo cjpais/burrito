@@ -35,7 +35,12 @@ export const getChunkSummariesStep: Step<
   },
   run: async (metadata) => {
     const transcripts = metadata.audio.chunks.map((chunk) => chunk.transcript);
-    const promises = transcripts.map((transcript) => summarize(transcript));
+    const promises = transcripts.map((transcript) =>
+      summarize(transcript, {
+        userData:
+          typeof metadata.userData === "string" ? metadata.userData : undefined,
+      })
+    );
     const summaries = await Promise.all(promises);
 
     const chunkSummaries = metadata.audio.chunks.map((chunk, i) => ({
