@@ -1,4 +1,5 @@
 import { generateCompletion } from "./openai";
+import { generateTogetherCompletion } from "./together";
 
 export type CompletionParams = {
   systemPrompt?: string;
@@ -39,6 +40,68 @@ export const summarize = async (
     userPrompt: toSummarize,
     model: params.model,
   });
+};
+
+type ModelParams = {
+  rl: number;
+  name: string;
+  func: (systemPrompt: string, userPrompt: string) => Promise<string>;
+  //   func: (systemPrompt: string, message: string, schema?: any) => Promise<any>;
+};
+
+export const MODELS: Record<string, ModelParams> = {
+  gpt4: {
+    rl: 75,
+    name: "gpt4",
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "gpt-4-1106-preview",
+      })) as string,
+  },
+  // "mistral-medium": {
+  //   rl: 2,
+  //   name: "mistral-medium",
+  //   func: (systemPrompt: string, userPrompt: string, stream: boolean) =>
+  //     generateCompletion({
+  //       systemPrompt,
+  //       userPrompt,
+  //       stream,
+  //       model: "gpt-4-1106-preview",
+  //     }),
+  // },
+  mixtral: {
+    rl: 50,
+    name: "mixtral",
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateTogetherCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      })) as string,
+  },
+  mistral7b: {
+    rl: 50,
+    name: "mistral7b",
+    func: async (systemPrompt: string, userPrompt: string) => {
+      return (await generateTogetherCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistralai/Mistral-7B-Instruct-v0.2",
+      })) as string;
+    },
+  },
+  "gpt3.5": {
+    rl: 75,
+    name: "gpt3.5",
+    func: async (systemPrompt: string, userPrompt: string) =>
+      (await generateCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "gpt-3.5-turbo-0125",
+      })) as string,
+  },
 };
 
 export const runCodeCompletion = async ({

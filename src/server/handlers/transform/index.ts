@@ -1,71 +1,21 @@
 import { z } from "zod";
 import { metadataList, validateAuthToken } from "../..";
 import { generateCompletion } from "../../../cognition/openai";
-import { extractJSON } from "../../../cognition";
+import { MODELS, extractJSON } from "../../../cognition";
 import dayjs from "dayjs";
 import { generateTogetherCompletion } from "../../../cognition/together";
 
-type ModelParams = {
-  rl: number;
-  name: string;
-  func: (systemPrompt: string, userPrompt: string) => Promise<string>;
-  //   func: (systemPrompt: string, message: string, schema?: any) => Promise<any>;
-};
+// const TRANSFORM_CACHE_PATH = `${process.env
+//   .BRAIN_STORAGE_ROOT!}/transformCompletionCache.json`;
 
-const MODELS: Record<string, ModelParams> = {
-  gpt4: {
-    rl: 75,
-    name: "gpt4",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "gpt-4-1106-preview",
-      })) as string,
-  },
-  // "mistral-medium": {
-  //   rl: 2,
-  //   name: "mistral-medium",
-  //   func: (systemPrompt: string, userPrompt: string, stream: boolean) =>
-  //     generateCompletion({
-  //       systemPrompt,
-  //       userPrompt,
-  //       stream,
-  //       model: "gpt-4-1106-preview",
-  //     }),
-  // },
-  mixtral: {
-    rl: 50,
-    name: "mixtral",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateTogetherCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
-      })) as string,
-  },
-  mistral7b: {
-    rl: 50,
-    name: "mistral7b",
-    func: async (systemPrompt: string, userPrompt: string) => {
-      return (await generateTogetherCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistralai/Mistral-7B-Instruct-v0.2",
-      })) as string;
-    },
-  },
-  "gpt3.5": {
-    rl: 75,
-    name: "gpt3.5",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "gpt-3.5-turbo-0125",
-      })) as string,
-  },
-};
+// type CachedTransformCompletion = {
+//   query: string;
+//   completion: any;
+//   cachedAt: number;
+//   cacheFor: number; // default is 1 week
+// };
+
+// export let transformCompletionCache: Record<string, any> = {};
 
 const TransformRequestSchema = z.object({
   hashes: z.array(z.string()).optional(),
@@ -84,6 +34,7 @@ const TransformRequestSchema = z.object({
     })
     .optional(),
   force: z.boolean().optional(),
+  cacheFor: z.number().optional(),
   // stream: z.boolean().optional().default(false),
 });
 
@@ -91,6 +42,9 @@ function rateLimitedQueryExecutor<T>(
   queries: (() => Promise<T>)[],
   maxPerSecond: number
 ): Promise<T[]> {
+  if (queries.length === 0) {
+    return Promise.resolve([]);
+  }
   console.log(
     `Rate limiting ${queries.length} queries to ${maxPerSecond} per second`
   );
@@ -117,6 +71,7 @@ function rateLimitedQueryExecutor<T>(
 }
 
 export const handleTransformRequest = async (request: Request) => {
+  // TODO we really need to check that the return type is what the user is expecting
   if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -131,6 +86,7 @@ export const handleTransformRequest = async (request: Request) => {
     prompt,
     save,
     force,
+    cacheFor,
     model,
     systemPrompt,
     mode,
@@ -143,22 +99,41 @@ export const handleTransformRequest = async (request: Request) => {
     data = data.filter((m) => hashes.includes(m.hash));
   }
 
-  data = data.map((m: any) => ({
-    created: m.created,
-    date: dayjs(m.created * 1000).format("MMM D, YYYY - h:mma"),
-    hash: m.hash,
-    title: m.title,
-    summary: m.summary,
-    description: m.description,
-    caption: m.caption,
-    userData: m.userData,
-    text: m.audio ? m.audio.transcript : "",
-  }));
+  const [queryData, existingResults] = data.reduce(
+    ([qd, er], d) => {
+      if (
+        !save ||
+        !save.app ||
+        !d.transforms ||
+        !d.transforms[save.app] ||
+        force ||
+        mode === "all"
+      ) {
+        qd.push({
+          created: d.created,
+          date: dayjs(d.created * 1000).format("MMM D, YYYY - h:mma"),
+          hash: d.hash,
+          title: d.title,
+          summary: d.summary,
+          description: d.description,
+          caption: d.caption,
+          userData: d.userData,
+          text: d.audio ? d.audio.transcript : "",
+        });
+      } else {
+        console.log("using existing transform", d.transforms[save.app], d.hash);
+        er.push({ completion: d.transforms[save.app], hash: d.hash });
+      }
+      return [qd, er];
+    },
+    [[], []]
+  );
 
   const completionFunc = MODELS[model].func;
 
+  // TODO these are their own functions really.
   if (mode === "each") {
-    const queries = data.map((d) => async () => ({
+    const queries = queryData.map((d) => async () => ({
       hash: d.hash,
       completion: await completionFunc(
         systemPrompt ? systemPrompt : "You are a helpful assistant.",
@@ -174,7 +149,28 @@ export const handleTransformRequest = async (request: Request) => {
     }));
     console.log(results);
 
-    return new Response(JSON.stringify(response), { status: 200 });
+    // do this async
+    if (save && save.app) {
+      response.map(async (r) => {
+        // TODO, this is not thread safe.
+        let entry = metadataList.find((m) => m.hash === r.hash);
+        if (!entry.transforms) {
+          entry.transforms = {};
+        }
+
+        entry.transforms[save.app] = r.completion;
+
+        // save back to the database
+        Bun.write(
+          `${process.env.BRAIN_STORAGE_ROOT}/data/${r.hash}/metadata.json`,
+          JSON.stringify(entry)
+        );
+      });
+    }
+
+    return new Response(JSON.stringify([...response, ...existingResults]), {
+      status: 200,
+    });
   } else {
     const completion = await completionFunc(
       systemPrompt ? systemPrompt : "You are a helpful assistant.",
