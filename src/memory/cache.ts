@@ -38,6 +38,11 @@ export class CompletionCache<T = any> {
         console.error(`Error populating ${this.name} cache: `, e);
       }
     } else {
+      // mkdir if it doesn't exist
+      if (!fs.existsSync(CACHE_BASE_PATH)) {
+        fs.mkdirSync(CACHE_BASE_PATH, { recursive: true });
+      }
+
       // create the file
       fs.writeFileSync(this.cachePath, "{}");
       console.log(`Created ${this.name} cache`);
