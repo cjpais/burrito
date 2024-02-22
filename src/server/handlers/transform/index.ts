@@ -1,21 +1,10 @@
 import { z } from "zod";
 import { metadataList, validateAuthToken } from "../..";
-import { generateCompletion } from "../../../cognition/openai";
 import { MODELS, extractJSON } from "../../../cognition";
 import dayjs from "dayjs";
-import { generateTogetherCompletion } from "../../../cognition/together";
+import { CompletionCache } from "../../../memory/cache";
 
-// const TRANSFORM_CACHE_PATH = `${process.env
-//   .BRAIN_STORAGE_ROOT!}/transformCompletionCache.json`;
-
-// type CachedTransformCompletion = {
-//   query: string;
-//   completion: any;
-//   cachedAt: number;
-//   cacheFor: number; // default is 1 week
-// };
-
-// export let transformCompletionCache: Record<string, any> = {};
+const cache = new CompletionCache<any>({ name: "transform" });
 
 const TransformRequestSchema = z.object({
   hashes: z.array(z.string()).optional(),
@@ -70,8 +59,8 @@ function rateLimitedQueryExecutor<T>(
   });
 }
 
+// TODO we really need to check that the return type is what the user is expecting
 export const handleTransformRequest = async (request: Request) => {
-  // TODO we really need to check that the return type is what the user is expecting
   if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -81,33 +70,24 @@ export const handleTransformRequest = async (request: Request) => {
   }
 
   const body = await request.json();
-  const {
-    hashes,
-    prompt,
-    save,
-    force,
-    cacheFor,
-    model,
-    systemPrompt,
-    mode,
-    completionType,
-  } = TransformRequestSchema.parse(body);
+  const params = TransformRequestSchema.parse(body);
 
+  // TODO this block should be a function
   let data = metadataList;
 
-  if (hashes) {
-    data = data.filter((m) => hashes.includes(m.hash));
+  if (params.hashes) {
+    data = data.filter((m) => params.hashes.includes(m.hash));
   }
 
   const [queryData, existingResults] = data.reduce(
     ([qd, er], d) => {
       if (
-        !save ||
-        !save.app ||
+        !params.save ||
+        !params.save.app ||
         !d.transforms ||
-        !d.transforms[save.app] ||
-        force ||
-        mode === "all"
+        !d.transforms[params.save.app] ||
+        params.force ||
+        params.mode === "all"
       ) {
         qd.push({
           created: d.created,
@@ -121,36 +101,47 @@ export const handleTransformRequest = async (request: Request) => {
           text: d.audio ? d.audio.transcript : "",
         });
       } else {
-        console.log("using existing transform", d.transforms[save.app], d.hash);
-        er.push({ completion: d.transforms[save.app], hash: d.hash });
+        console.log(
+          "using existing transform",
+          d.transforms[params.save.app],
+          d.hash
+        );
+        er.push({ completion: d.transforms[params.save.app], hash: d.hash });
       }
       return [qd, er];
     },
     [[], []]
   );
 
-  const completionFunc = MODELS[model].func;
+  const completionFunc = MODELS[params.model].func;
 
   // TODO these are their own functions really.
-  if (mode === "each") {
+  if (params.mode === "each") {
     const queries = queryData.map((d) => async () => ({
       hash: d.hash,
       completion: await completionFunc(
-        systemPrompt ? systemPrompt : "You are a helpful assistant.",
+        params.systemPrompt
+          ? params.systemPrompt
+          : "You are a helpful assistant.",
         `${prompt}\n\n${JSON.stringify(d, null, 2)}`
       ),
     }));
 
-    const results = await rateLimitedQueryExecutor(queries, MODELS[model].rl);
+    const results = await rateLimitedQueryExecutor(
+      queries,
+      MODELS[params.model].rl
+    );
     const response = results.map((r) => ({
       hash: r.hash,
       completion:
-        completionType === "json" ? extractJSON(r.completion) : r.completion,
+        params.completionType === "json"
+          ? extractJSON(r.completion)
+          : r.completion,
     }));
     console.log(results);
 
     // do this async
-    if (save && save.app) {
+    if (params.save && params.save.app) {
       response.map(async (r) => {
         // TODO, this is not thread safe.
         let entry = metadataList.find((m) => m.hash === r.hash);
@@ -158,7 +149,7 @@ export const handleTransformRequest = async (request: Request) => {
           entry.transforms = {};
         }
 
-        entry.transforms[save.app] = r.completion;
+        entry.transforms[params.save.app] = r.completion;
 
         // save back to the database
         Bun.write(
@@ -172,13 +163,31 @@ export const handleTransformRequest = async (request: Request) => {
       status: 200,
     });
   } else {
-    const completion = await completionFunc(
-      systemPrompt ? systemPrompt : "You are a helpful assistant.",
-      `${prompt}\n\n${JSON.stringify(queryData, null, 2)}`
-    );
+    const cacheKey = JSON.stringify({
+      prompt: params.prompt,
+      systemPrompt: params.systemPrompt,
+      hashes: params.hashes,
+      model: params.model,
+      completionType: params.completionType,
+    });
+    const cachedCompletion = cache.getValid(cacheKey);
 
-    const response =
-      completionType === "json" ? extractJSON(completion) : completion;
-    return new Response(JSON.stringify(response), { status: 200 });
+    if (cachedCompletion && !params.force) {
+      console.log("Using cached transform completion");
+      return new Response(JSON.stringify(cachedCompletion), { status: 200 });
+    } else {
+      const completion = await completionFunc(
+        params.systemPrompt
+          ? params.systemPrompt
+          : "You are a helpful assistant.",
+        `${prompt}\n\n${JSON.stringify(queryData, null, 2)}`
+      );
+
+      const response =
+        params.completionType === "json" ? extractJSON(completion) : completion;
+
+      cache.set(cacheKey, response, params.cacheFor);
+      return new Response(JSON.stringify(response), { status: 200 });
+    }
   }
 };
