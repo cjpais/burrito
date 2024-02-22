@@ -173,14 +173,17 @@ export const handleTransformRequest = async (request: Request) => {
     const cachedCompletion = cache.getValid(cacheKey);
 
     if (cachedCompletion && !params.force) {
-      console.log("Using cached transform completion");
+      console.log(
+        "Using cached transform completion",
+        JSON.stringify(cachedCompletion)
+      );
       return new Response(JSON.stringify(cachedCompletion), { status: 200 });
     } else {
       const completion = await completionFunc(
         params.systemPrompt
           ? params.systemPrompt
           : "You are a helpful assistant.",
-        `${prompt}\n\n${JSON.stringify(queryData, null, 2)}`
+        `${params.prompt}\n\n${JSON.stringify(queryData, null, 2)}`
       );
 
       const response =
