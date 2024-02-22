@@ -174,7 +174,7 @@ export const handleTransformRequest = async (request: Request) => {
   } else {
     const completion = await completionFunc(
       systemPrompt ? systemPrompt : "You are a helpful assistant.",
-      `${prompt}\n\n${JSON.stringify(data, null, 2)}`
+      `${prompt}\n\n${JSON.stringify(queryData, null, 2)}`
     );
 
     const response =
