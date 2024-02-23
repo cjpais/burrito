@@ -3,6 +3,7 @@ import { metadataList, validateAuthToken } from "../..";
 import { MODELS, extractJSON } from "../../../cognition";
 import dayjs from "dayjs";
 import { CompletionCache } from "../../../memory/cache";
+import { rateLimitedQueryExecutor } from "../../../misc/misc";
 
 const cache = new CompletionCache<any>({ name: "transform" });
 
@@ -24,40 +25,13 @@ const TransformRequestSchema = z.object({
     .optional(),
   force: z.boolean().optional(),
   cacheFor: z.number().optional(),
+  debug: z.boolean().optional().default(false),
   // stream: z.boolean().optional().default(false),
 });
 
-function rateLimitedQueryExecutor<T>(
-  queries: (() => Promise<T>)[],
-  maxPerSecond: number
-): Promise<T[]> {
-  if (queries.length === 0) {
-    return Promise.resolve([]);
-  }
-  console.log(
-    `Rate limiting ${queries.length} queries to ${maxPerSecond} per second`
-  );
-  let index = 0; // Track the current index of the queries array
-  const allPromises: Promise<T>[] = []; // Store all initiated query promises
+const transformEach = async (params: any) => {};
 
-  return new Promise((resolve, reject) => {
-    const intervalId = setInterval(() => {
-      if (index >= queries.length) {
-        clearInterval(intervalId); // Stop the interval when all queries are initiated
-        Promise.all(allPromises).then(resolve).catch(reject); // Wait for all queries to complete
-        return;
-      }
-
-      // Initiate up to 'maxPerSecond' queries in parallel and store their promises
-      for (let i = 0; i < maxPerSecond && index < queries.length; i++) {
-        console.log(`Initiating query ${index + 1} of ${queries.length}`);
-        const queryPromise = queries[index++]();
-        allPromises.push(queryPromise);
-        queryPromise.catch(console.error); // Optionally log errors without stopping other queries
-      }
-    }, 1000); // Set the interval to 1 second (1000 milliseconds)
-  });
-}
+const transformAll = async (params: any) => {};
 
 // TODO we really need to check that the return type is what the user is expecting
 export const handleTransformRequest = async (request: Request) => {
@@ -101,16 +75,20 @@ export const handleTransformRequest = async (request: Request) => {
           text: d.audio ? d.audio.transcript : "",
         });
       } else {
-        console.log(
-          "using existing transform",
-          d.transforms[params.save.app],
-          d.hash
-        );
+        // console.log(
+        //   "using existing transform",
+        //   d.transforms[params.save.app],
+        //   d.hash
+        // );
         er.push({ completion: d.transforms[params.save.app], hash: d.hash });
       }
       return [qd, er];
     },
     [[], []]
+  );
+
+  console.log(
+    `transforming: ${queryData.length}. existing: ${existingResults.length}`
   );
 
   const completionFunc = MODELS[params.model].func;
@@ -119,11 +97,12 @@ export const handleTransformRequest = async (request: Request) => {
   if (params.mode === "each") {
     const queries = queryData.map((d) => async () => ({
       hash: d.hash,
+      debug: params.debug,
       completion: await completionFunc(
         params.systemPrompt
           ? params.systemPrompt
           : "You are a helpful assistant.",
-        `${prompt}\n\n${JSON.stringify(d, null, 2)}`
+        `${params.prompt}\n\n${JSON.stringify(d, null, 2)}`
       ),
     }));
 
@@ -131,14 +110,15 @@ export const handleTransformRequest = async (request: Request) => {
       queries,
       MODELS[params.model].rl
     );
-    const response = results.map((r) => ({
+    const response = results.map((r, i) => ({
       hash: r.hash,
+      // modelPrompt: queries
       completion:
         params.completionType === "json"
           ? extractJSON(r.completion)
           : r.completion,
     }));
-    console.log(results);
+    // console.log(results);
 
     // do this async
     if (params.save && params.save.app) {
@@ -159,7 +139,32 @@ export const handleTransformRequest = async (request: Request) => {
       });
     }
 
-    return new Response(JSON.stringify([...response, ...existingResults]), {
+    let responseArr = [...response, ...existingResults];
+
+    if (params.debug) {
+      responseArr = responseArr.map((r) => {
+        const d = metadataList.find((m) => m.hash === r.hash);
+        // const promptData = {}
+        const promptData = {
+          created: d.created,
+          date: dayjs(d.created * 1000).format("MMM D, YYYY - h:mma"),
+          hash: d.hash,
+          title: d.title,
+          summary: d.summary,
+          description: d.description,
+          caption: d.caption,
+          userData: d.userData,
+          text: d.audio ? d.audio.transcript : "",
+        };
+
+        return {
+          ...r,
+          prompt: `${params.prompt}\n\n${JSON.stringify(promptData, null, 2)}`,
+        };
+      });
+    }
+
+    return new Response(JSON.stringify(responseArr), {
       status: 200,
     });
   } else {
