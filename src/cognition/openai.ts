@@ -3,6 +3,7 @@ import fs from "fs";
 import { FileMetadata, getFileInfo } from "../memory/files";
 import { CompletionParams } from ".";
 import { ChatCompletion } from "openai/resources/index.mjs";
+import { generateTranscription } from "./transcription";
 
 // TODO should this be in 'understanding' or something? TBD
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -57,25 +58,36 @@ export const generateEmbeddings = async (texts: string[]) => {
   return response.data.map((d) => d.embedding);
 };
 
+export const openAITranscription = async ({
+  file,
+  model,
+  prompt,
+}: {
+  file: fs.ReadStream;
+  model: "whisper-1";
+  prompt?: string | undefined;
+}) => {
+  return (
+    await openai.audio.transcriptions.create({
+      file: file,
+      model: model,
+      prompt: prompt,
+    })
+  ).text;
+};
+
 export const generateTranscriptions = async (files: string[]) => {
   const transcriptions = await Promise.all(
     files.map((filename, idx) => {
-      return openai.audio.transcriptions
-        .create({
-          file: fs.createReadStream(filename),
-          model: "whisper-1",
-          prompt: "Transcribe the audio.",
-        })
-        .then((transcription) => ({
-          transcription: transcription.text,
-          number: idx,
-        }));
+      return generateTranscription({
+        file: filename,
+        model: "whisper-1",
+        provider: "whispercpp",
+      }).then((text) => ({ number: idx, text }));
     })
   );
 
-  return transcriptions
-    .sort((a, b) => a.number - b.number)
-    .map((t) => t.transcription);
+  return transcriptions.sort((a, b) => a.number - b.number).map((t) => t.text);
 };
 
 export const generateImageCompletion = async ({
