@@ -51,8 +51,8 @@ export const cleanAudio = async (
       .audioFilter(
         "silenceremove=start_periods=1:stop_periods=-1:stop_duration=5:start_threshold=-40dB:stop_threshold=-40dB"
       )
-      .audioFilter("highpass=f=80")
-      .audioFilter("lowpass=f=8000")
+      // .audioFilter("highpass=f=80")
+      // .audioFilter("lowpass=f=8000")
       .audioFilter("acompressor")
       .audioFilter("loudnorm=I=-16:TP=-1.5:LRA=11")
 
