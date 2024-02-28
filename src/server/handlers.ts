@@ -18,6 +18,10 @@ export const notFoundHandler = (request: Request) => {
 };
 
 export const metadataHandler = async (request: Request) => {
+  if (!validateAuthToken(request)) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
     const url = new URL(request.url);
     const hash = decodeURIComponent(url.pathname).split("/").pop();
