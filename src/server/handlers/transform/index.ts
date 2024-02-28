@@ -20,7 +20,6 @@ const TransformRequestSchema = z.object({
   save: z
     .object({
       app: z.string(),
-      key: z.string(),
     })
     .optional(),
   force: z.boolean().optional(),
