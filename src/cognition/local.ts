@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { FileMetadata, getFileInfo } from "../memory/files";
-import { CompletionParams } from ".";
+import { CompletionParams, DEFAULT_SYS_PROMPT } from ".";
 import { ChatCompletion } from "openai/resources/index.mjs";
 
 const local = new OpenAI({
@@ -9,7 +9,7 @@ const local = new OpenAI({
 });
 
 export const generateLocalCompletion = async ({
-  systemPrompt = "You are a helpful assistant.",
+  systemPrompt = DEFAULT_SYS_PROMPT,
   userPrompt,
   model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
   stream = false,

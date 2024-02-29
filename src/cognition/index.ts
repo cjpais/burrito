@@ -1,13 +1,19 @@
+import { generateMistralCompletion } from "./mistral";
 import { generateCompletion } from "./openai";
 import { generateTogetherCompletion } from "./together";
 
-export type CompletionParams = {
+export const DEFAULT_SYS_PROMPT = "You are a helpful assistant.";
+export const DEFAULT_JSON_SYS_PROMPT =
+  "You are a helpful assistant. You only respond in JSON.";
+
+export interface CompletionParams {
   systemPrompt?: string;
   userPrompt: string;
   model?: string;
   schema?: any;
   stream?: boolean;
-};
+  json?: boolean;
+}
 
 export type RunCompletionParams = {
   name: string;
@@ -60,17 +66,36 @@ export const MODELS: Record<string, ModelParams> = {
         model: "gpt-4-1106-preview",
       })) as string,
   },
-  // "mistral-medium": {
-  //   rl: 2,
-  //   name: "mistral-medium",
-  //   func: (systemPrompt: string, userPrompt: string, stream: boolean) =>
-  //     generateCompletion({
-  //       systemPrompt,
-  //       userPrompt,
-  //       stream,
-  //       model: "gpt-4-1106-preview",
-  //     }),
-  // },
+  "mistral-medium": {
+    rl: 2,
+    name: "mistral-medium",
+    func: (systemPrompt: string, userPrompt: string) =>
+      generateMistralCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistral-medium-latest",
+      }),
+  },
+  "mistral-small": {
+    rl: 2,
+    name: "mistral-small",
+    func: (systemPrompt: string, userPrompt: string) =>
+      generateMistralCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistral-small-latest",
+      }),
+  },
+  "mistral-large": {
+    rl: 2,
+    name: "mistral-large",
+    func: (systemPrompt: string, userPrompt: string) =>
+      generateMistralCompletion({
+        systemPrompt,
+        userPrompt,
+        model: "mistral-large-latest",
+      }),
+  },
   mixtral: {
     rl: 50,
     name: "mixtral",
@@ -106,7 +131,7 @@ export const MODELS: Record<string, ModelParams> = {
 
 export const runCodeCompletion = async ({
   name,
-  systemPrompt = "You are a helpful assistant.",
+  systemPrompt = DEFAULT_SYS_PROMPT,
   userPrompt = "",
   model = "gpt-4-1106-preview",
 }: RunCompletionParams): Promise<string | null> => {
@@ -134,7 +159,7 @@ export const runCodeCompletion = async ({
 
 export const runJsonCompletion = async <T>({
   name,
-  systemPrompt = "You are a helpful assistant.",
+  systemPrompt = DEFAULT_JSON_SYS_PROMPT,
   userPrompt = "",
   model = "gpt-4-1106-preview",
 }: RunCompletionParams): Promise<T | null> => {

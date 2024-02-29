@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { metadataList, validateAuthToken } from "../..";
-import { MODELS, extractJSON } from "../../../cognition";
+import { DEFAULT_SYS_PROMPT, MODELS, extractJSON } from "../../../cognition";
 import dayjs from "dayjs";
 import { CompletionCache } from "../../../memory/cache";
 import {
@@ -101,9 +101,7 @@ export const handleTransformRequest = async (request: Request) => {
       hash: d.hash,
       debug: params.debug,
       completion: await completionFunc(
-        params.systemPrompt
-          ? params.systemPrompt
-          : "You are a helpful assistant.",
+        params.systemPrompt ? params.systemPrompt : DEFAULT_SYS_PROMPT,
         `${params.prompt}\n\n${JSON.stringify(d, null, 2)}`
       ),
     }));
@@ -184,9 +182,7 @@ export const handleTransformRequest = async (request: Request) => {
       return new Response(JSON.stringify(cachedCompletion), { status: 200 });
     } else {
       const completion = await completionFunc(
-        params.systemPrompt
-          ? params.systemPrompt
-          : "You are a helpful assistant.",
+        params.systemPrompt ? params.systemPrompt : DEFAULT_SYS_PROMPT,
         `${params.prompt}\n\n${JSON.stringify(queryData, null, 2)}`
       );
 

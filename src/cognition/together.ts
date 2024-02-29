@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { CompletionParams } from ".";
+import { CompletionParams, DEFAULT_SYS_PROMPT } from ".";
 import { ChatCompletion } from "openai/resources/index.mjs";
 
 const together = new OpenAI({
@@ -8,7 +8,7 @@ const together = new OpenAI({
 });
 
 export const generateTogetherCompletion = async ({
-  systemPrompt = "You are a helpful assistant.",
+  systemPrompt = DEFAULT_SYS_PROMPT,
   userPrompt,
   model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
   stream = false,

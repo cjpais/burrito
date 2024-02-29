@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import fs from "fs";
 import { FileMetadata, getFileInfo } from "../memory/files";
-import { CompletionParams } from ".";
+import { CompletionParams, DEFAULT_SYS_PROMPT } from ".";
 import { ChatCompletion } from "openai/resources/index.mjs";
 import { generateTranscription } from "./transcription";
 
@@ -9,7 +9,7 @@ import { generateTranscription } from "./transcription";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const generateCompletion = async ({
-  systemPrompt = "You are a helpful assistant.",
+  systemPrompt = DEFAULT_SYS_PROMPT,
   userPrompt,
   schema,
   model = "gpt-3.5-turbo-1106",
@@ -111,7 +111,7 @@ export const generateImageCompletion = async ({
     messages: [
       {
         role: "system",
-        content: systemPrompt || "You are a helpful assistant.",
+        content: systemPrompt || DEFAULT_SYS_PROMPT,
       },
       {
         role: "user",
