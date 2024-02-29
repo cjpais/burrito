@@ -1,3 +1,6 @@
+import { FileMetadata } from "../memory/files";
+import { GenericObject } from "../server/handlers";
+
 export const hash = (input: StringOrBuffer) => {
   const hasher = new Bun.CryptoHasher("sha256");
   hasher.update(input);
@@ -34,4 +37,14 @@ export const rateLimitedQueryExecutor = <T>(
       }
     }, 1000); // Set the interval to 1 second (1000 milliseconds)
   });
+};
+
+export const writeHashMetadata = (
+  hash: string,
+  metadata: Partial<FileMetadata> & GenericObject
+) => {
+  Bun.write(
+    `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`,
+    JSON.stringify(metadata)
+  );
 };

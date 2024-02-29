@@ -3,7 +3,10 @@ import { metadataList, validateAuthToken } from "../..";
 import { MODELS, extractJSON } from "../../../cognition";
 import dayjs from "dayjs";
 import { CompletionCache } from "../../../memory/cache";
-import { rateLimitedQueryExecutor } from "../../../misc/misc";
+import {
+  rateLimitedQueryExecutor,
+  writeHashMetadata,
+} from "../../../misc/misc";
 
 const cache = new CompletionCache<any>({ name: "transform" });
 
@@ -131,10 +134,7 @@ export const handleTransformRequest = async (request: Request) => {
         entry.transforms[params.save.app] = r.completion;
 
         // save back to the database
-        Bun.write(
-          `${process.env.BRAIN_STORAGE_ROOT}/data/${r.hash}/metadata.json`,
-          JSON.stringify(entry)
-        );
+        writeHashMetadata(r.hash, entry);
       });
     }
 
