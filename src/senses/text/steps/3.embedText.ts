@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Step } from "../../../cognition/pipeline";
 import { collection, embed } from "../../../memory/vector";
-import { generateEmbeddings } from "../../../cognition/openai";
+import { inference } from "../../../cognition/inference";
 
 const InputSchema = z.object({
   hash: z.string(),
@@ -39,10 +39,16 @@ export const embedTextStep: Step<Input, Output> = {
     let embedding;
     if (metadata.text.length > 2000) {
       // embed summary
-      embedding = await generateEmbeddings([metadata.summary]);
+      embedding = await inference.embed({
+        texts: [metadata.summary],
+        model: "ada",
+      });
     } else {
       // embed text
-      embedding = await generateEmbeddings([metadata.text]);
+      embedding = await inference.embed({
+        texts: [metadata.text],
+        model: "ada",
+      });
     }
 
     await embed(

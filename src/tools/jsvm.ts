@@ -1,9 +1,9 @@
 import vm from "vm";
 import { metadataList } from "../server";
-import { generateCompletion } from "../cognition/openai";
 import { CODE_SYSTEM_PROMPT } from "../misc/prompts";
 import { hash } from "../misc/misc";
 import fs from "fs";
+import { inference } from "../cognition/inference";
 
 const CODE_CACHE_PATH = `${process.env
   .BRAIN_STORAGE_ROOT!}/codeCompletionCache.json`;
@@ -30,31 +30,17 @@ export const executeQuery = async (query: string, force: boolean = false) => {
   if (codeCompletionCache[queryHash] && !force) {
     if (codeCompletionCache[queryHash].code) {
       code = codeCompletionCache[queryHash].code;
-    } else {
-      // fix up any existing cache entries
-      code = codeCompletionCache[queryHash];
-      codeCompletionCache[queryHash] = { code, query };
     }
   }
 
   if (!code) {
     console.log("generating code completion");
-    // const completion = await generateCompletion(CODE_SYSTEM_PROMPT, query);
-    const codeCompletion = (await generateCompletion({
+    const codeCompletion = await inference.chat({
       systemPrompt: CODE_SYSTEM_PROMPT,
-      userPrompt: query,
-      schema: {
-        type: "object",
-        properties: {
-          code: {
-            type: "string",
-            description: "The code to execute",
-          },
-        },
-        required: ["code"],
-      },
-      model: "gpt-4-1106-preview",
-    })) as string;
+      prompt: query,
+      model: "mixtral",
+      json: true,
+    });
     try {
       code = JSON.parse(codeCompletion as string).code;
     } catch {

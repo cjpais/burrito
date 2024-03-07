@@ -1,6 +1,4 @@
-import { z } from "zod";
-import { generateEmbeddings } from "../../../cognition/openai";
-import { Step, merge } from "../../../cognition/pipeline";
+import { Step } from "../../../cognition/pipeline";
 import { ChunkEmbeddings, ChunkEmbeddingsSchema } from "./4.getChunkEmbeddings";
 import { collection, embed } from "../../../memory/vector";
 

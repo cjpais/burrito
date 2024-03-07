@@ -1,5 +1,8 @@
+import dayjs from "dayjs";
 import { FileMetadata } from "../memory/files";
 import { GenericObject } from "../server/handlers";
+
+export type StringOrBuffer = string | Buffer;
 
 export const hash = (input: StringOrBuffer) => {
   const hasher = new Bun.CryptoHasher("sha256");
@@ -47,4 +50,18 @@ export const writeHashMetadata = (
     `${process.env.BRAIN_STORAGE_ROOT}/data/${hash}/metadata.json`,
     JSON.stringify(metadata)
   );
+};
+
+export const getSimpleData = (d: FileMetadata & GenericObject) => {
+  return {
+    created: d.created,
+    date: dayjs(d.created * 1000).format("MMM D, YYYY - h:mma"),
+    hash: d.hash,
+    title: d.title,
+    summary: d.summary,
+    description: d.description,
+    caption: d.caption,
+    userData: d.userData,
+    text: d.audio ? d.audio.transcript : "",
+  };
 };

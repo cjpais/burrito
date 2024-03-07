@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Step, merge } from "../../../cognition/pipeline";
-import { generateCompletion } from "../../../cognition/openai";
+import { inference } from "../../../cognition/inference";
 
 const API_URL = `https://us1.locationiq.com/v1/reverse`;
 
@@ -45,13 +45,13 @@ export const reverseGeocodeStep: Step<Input, Output> = {
 
       const rawLocation = response.display_name;
 
-      output.location = await generateCompletion({
+      output.location = await inference.chat({
         systemPrompt: `you are a helpful assistant. you follow instructions carefully
 
       you are to take the location text given and simplify it.
       you output only the simplified text. be as specific as possible while not revealing addresses. Output with dash inbeween the two most relevant places in the string`,
-        userPrompt: rawLocation,
-        model: "gpt-3.5-turbo-1106",
+        prompt: rawLocation,
+        model: "mistral-small",
       });
       console.log("gpt location", output.location, "\ninput", rawLocation);
     }

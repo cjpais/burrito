@@ -17,7 +17,6 @@ import { generateSummaryStep } from "./steps/7.generateSummary";
 import { cleanAudioStep } from "./steps/0b.cleanAudio";
 import { embedChunksStep } from "./steps/6.embedChunks";
 import { addTitleStep } from "./steps/8.addTitle";
-import { generateCompostStep } from "./steps/9.compost";
 import { combineEmbeddingsStep } from "./steps/10.combineEmbeddings";
 import { getMetadataStep } from "./steps/0a.getMetadata";
 

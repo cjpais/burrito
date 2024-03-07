@@ -1,5 +1,5 @@
 import { innerProduct } from "ml-distance/lib/distances";
-import { generateEmbeddings } from "../cognition/openai";
+import { inference } from "../cognition/inference";
 
 export const keywordSearch = async (keywords: string[], data: any[]) => {
   if (keywords.length === 0 || data.length === 0)
@@ -7,7 +7,10 @@ export const keywordSearch = async (keywords: string[], data: any[]) => {
 
   const validData = data.filter((d) => d.embedding);
 
-  const keywordEmbedding = await generateEmbeddings(keywords);
+  const keywordEmbedding = await inference.embed({
+    texts: keywords,
+    model: "ada",
+  });
 
   const keywordSimilarities = validData
     .map((d) => {

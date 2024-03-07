@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Step } from "../../../cognition/pipeline";
-import { generateCompletion } from "../../../cognition/openai";
+import { inference } from "../../../cognition/inference";
 
 const InputSchema = z.object({
   caption: z.string(),
@@ -23,9 +23,10 @@ export const titleImageStep: Step<Input, Output> = {
     return true;
   },
   run: async (metadata) => {
-    const title = await generateCompletion({
-      systemPrompt: `you are excellent at writing titles.å proivide a singular title for the text`,
-      userPrompt: metadata.caption,
+    const title = await inference.chat({
+      systemPrompt: `you are excellent at writing titles. proivide a singular title for the text`,
+      prompt: metadata.caption,
+      model: "gpt3.5",
     });
 
     if (!title) return metadata;

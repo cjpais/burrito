@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { Step, merge } from "../../../cognition/pipeline";
-import { generateTranscriptions } from "../../../cognition/openai";
 import {
   InitialAudioMetadata,
   InitialAudioMetadataSchema,
   InitialChunkSchema,
 } from "./1.chunkAudio";
 import { FileMetadataSchema, getFileInfo } from "../../../memory/files";
+import { generateTranscriptions } from "../../../cognition";
 
 export const TranscribedChunkSchema = InitialChunkSchema.extend({
   transcript: z.string(),

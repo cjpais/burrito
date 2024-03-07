@@ -12,6 +12,9 @@ import { processImage } from "../../../senses/image";
 import { processVideo } from "../../../senses/video";
 import { GenericObject, RequestMetadataSchema } from "../../handlers";
 import { sendMessage } from "../../../external/jared";
+import { installedTransforms } from "../install";
+import { transformEach } from "../transform/transform";
+import { getSimpleData } from "../../../misc/misc";
 
 const activeRequests = new Map<string, boolean>();
 
@@ -28,15 +31,46 @@ export const storePipelines = new Map<string, PipelineFunction>([
 
 const runStorePipeline = async (metadata: Metadata, fileInfo: FileInfo) => {
   const start = Date.now();
+
+  // TODO make pipeline a class or refactor to some schema to 'install' a pipeline
   let pipeline = storePipelines.get(metadata.type)!;
   metadata = await pipeline(metadata);
+
+  // const transformsToRun = Object.keys(installedTransforms).filter(
+
+  // TODO this is a hack to avoid touching pipeline before refactor
+  const transforms = await Promise.all(
+    Object.entries(installedTransforms).map(async ([app, params]) => ({
+      app: app,
+      transform: await transformEach([getSimpleData(metadata)], {
+        ...params,
+        completionType: "json",
+        debug: false,
+      }),
+    }))
+  );
+
+  console.log("transforms", transforms);
+
+  transforms.forEach((t) => {
+    metadata.transforms = metadata.transforms || {};
+    metadata.transforms[t.app] = t.transform[0].completion;
+  });
+
+  console.log("metadata", metadata);
+
   console.log(
     `${colorType(metadata.type)} pipeline for ${metadata.hash} took ${
       Date.now() - start
     }ms`
   );
   if (metadata.hash) activeRequests.delete(metadata.hash);
+
+  console.log("here");
+  const jsonData = JSON.stringify(metadata);
+  console.log("here2");
   Bun.write(`${fileInfo.dir}/metadata.json`, JSON.stringify(metadata));
+  console.log("here3");
 
   // hit callbacks
   await sendMessage(`Added your ${metadata.type} to the burrito!`);
@@ -148,6 +182,7 @@ export const handleStoreRequest = async (request: Request) => {
     return new Response(`Internal Server Error: ${e}`, { status: 500 });
   } finally {
     if (fileInfo) {
+      console.log("fileInfo", fileInfo);
       // write out metadata.json
       Bun.write(`${fileInfo.dir}/metadata.json`, JSON.stringify(metadata));
     }

@@ -14,11 +14,16 @@ export const sendMessage = async (message: string) => {
         },
       }),
     })
-      .then((r) => r.json())
-      .catch((e) => console.error(e));
+      .then((r) => {
+        if (r.ok) {
+          return true;
+        }
+        throw new Error("jared error: failed to send");
+      })
+      .catch((e) => console.error("jared error", e));
 
-    return resp;
+    return false;
   }
 
-  return;
+  return false;
 };

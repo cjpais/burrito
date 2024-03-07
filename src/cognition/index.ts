@@ -1,6 +1,5 @@
-import { generateMistralCompletion } from "./mistral";
-import { generateCompletion } from "./openai";
-import { generateTogetherCompletion } from "./together";
+import fs from "fs";
+import { ChatModels, inference } from "./inference";
 
 export const DEFAULT_SYS_PROMPT = "You are a helpful assistant.";
 export const DEFAULT_JSON_SYS_PROMPT =
@@ -19,7 +18,7 @@ export type RunCompletionParams = {
   name: string;
   systemPrompt?: string;
   userPrompt: string;
-  model?: "gpt-3.5-turbo-1106" | "gpt-4-1106-preview";
+  model?: ChatModels;
 };
 
 const CODE_REGEX = /```.*?\n([\s\S]*?)```/;
@@ -34,111 +33,32 @@ export const summarize = async (
   text: string,
   params: SummarizeParams = {
     summaryLength: "4 short sentences",
-    model: "gpt-4-0125-preview",
+    model: "gpt4",
   }
 ) => {
   const toSummarize = params.userData
     ? `Here is some user provided context: ${params.userData}\n${text}`
     : text;
 
-  return generateCompletion({
-    systemPrompt: `You are excellent at summarizing. Summarize the following text into ${params.summaryLength}. If the text is shorter than ${params.summaryLength}, output the text as it was given to you.`,
-    userPrompt: toSummarize,
+  // TODO really should have better type hints to avoid this
+  if (!params.model) params.model = "gpt4";
+
+  return inference.chat({
+    systemPrompt: `You are excellent at summarizing. Summarize from the first person point of view. Summarize the following text into ${params.summaryLength}. If the text is shorter than ${params.summaryLength}, output the text as it was given to you.`,
+    prompt: toSummarize,
     model: params.model,
   });
-};
-
-type ModelParams = {
-  rl: number;
-  name: string;
-  func: (systemPrompt: string, userPrompt: string) => Promise<string>;
-  //   func: (systemPrompt: string, message: string, schema?: any) => Promise<any>;
-};
-
-export const MODELS: Record<string, ModelParams> = {
-  gpt4: {
-    rl: 75,
-    name: "gpt4",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "gpt-4-1106-preview",
-      })) as string,
-  },
-  "mistral-medium": {
-    rl: 2,
-    name: "mistral-medium",
-    func: (systemPrompt: string, userPrompt: string) =>
-      generateMistralCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistral-medium-latest",
-      }),
-  },
-  "mistral-small": {
-    rl: 2,
-    name: "mistral-small",
-    func: (systemPrompt: string, userPrompt: string) =>
-      generateMistralCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistral-small-latest",
-      }),
-  },
-  "mistral-large": {
-    rl: 2,
-    name: "mistral-large",
-    func: (systemPrompt: string, userPrompt: string) =>
-      generateMistralCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistral-large-latest",
-      }),
-  },
-  mixtral: {
-    rl: 50,
-    name: "mixtral",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateTogetherCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
-      })) as string,
-  },
-  mistral7b: {
-    rl: 50,
-    name: "mistral7b",
-    func: async (systemPrompt: string, userPrompt: string) => {
-      return (await generateTogetherCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "mistralai/Mistral-7B-Instruct-v0.2",
-      })) as string;
-    },
-  },
-  "gpt3.5": {
-    rl: 75,
-    name: "gpt3.5",
-    func: async (systemPrompt: string, userPrompt: string) =>
-      (await generateCompletion({
-        systemPrompt,
-        userPrompt,
-        model: "gpt-3.5-turbo-0125",
-      })) as string,
-  },
 };
 
 export const runCodeCompletion = async ({
   name,
   systemPrompt = DEFAULT_SYS_PROMPT,
   userPrompt = "",
-  model = "gpt-4-1106-preview",
+  model = "gpt4",
 }: RunCompletionParams): Promise<string | null> => {
-  const rawCompletion = (await generateCompletion({
-    // const rawCompletion = (await generateTogetherCompletion(
+  const rawCompletion = (await inference.chat({
     systemPrompt,
-    userPrompt,
+    prompt: userPrompt,
     model,
   })) as string;
 
@@ -161,12 +81,11 @@ export const runJsonCompletion = async <T>({
   name,
   systemPrompt = DEFAULT_JSON_SYS_PROMPT,
   userPrompt = "",
-  model = "gpt-4-1106-preview",
+  model = "gpt4",
 }: RunCompletionParams): Promise<T | null> => {
-  const rawCompletion = (await generateCompletion({
-    // const rawCompletion = (await generateTogetherCompletion(
+  const rawCompletion = (await inference.chat({
     systemPrompt,
-    userPrompt,
+    prompt: userPrompt,
     model,
   })) as string;
 
@@ -210,4 +129,29 @@ export const extractJSON = <T>(text: string): T | null => {
   }
 
   return result;
+};
+
+export const generateTranscriptions = async (files: string[]) => {
+  const model = process.env.LOCAL_WHISPER_API_URL
+    ? "local-whisper"
+    : "oai-whisper";
+
+  console.log("running transcriptions", files, model);
+
+  const transcriptions = await Promise.all(
+    files.map((filename, idx) => {
+      const file = process.env.LOCAL_WHISPER_API_URL
+        ? filename
+        : fs.createReadStream(filename);
+
+      return inference
+        .transcribe({
+          model,
+          file,
+        })
+        .then((text) => ({ number: idx, text }));
+    })
+  );
+
+  return transcriptions.sort((a, b) => a.number - b.number).map((t) => t.text);
 };

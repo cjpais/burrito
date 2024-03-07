@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Step } from "../../../cognition/pipeline";
 import { collection, embed } from "../../../memory/vector";
-import { generateEmbeddings } from "../../../cognition/openai";
+import { inference } from "../../../cognition/inference";
 
 const InputSchema = z.object({
   description: z.string(),
@@ -40,7 +40,10 @@ export const embedImageStep: Step<Input, Output> = {
   },
   run: async (metadata) => {
     // TODO remove the concept of "image" from the embedding
-    const embedding = await generateEmbeddings([metadata.description]);
+    const embedding = await inference.embed({
+      texts: [metadata.description],
+      model: "ada",
+    });
     await embed(
       [metadata.description],
       [metadata.hash],

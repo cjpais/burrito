@@ -5,13 +5,13 @@ import {
   FileMetadataSchema,
   getFileInfo,
 } from "../../../memory/files";
-import { generateImageCompletion } from "../../../cognition/openai";
 import {
   DESCRIBE_IMAGE_PROMPT_TEMPLATE,
   ImageDescription,
 } from "../../../misc/prompts";
 import { extractJSON } from "../../../cognition";
 import Mustache from "mustache";
+import { inference } from "../../../cognition/inference";
 
 const InputSchema = FileMetadataSchema.extend({
   compressed: z.string(),
@@ -45,9 +45,16 @@ export const captionImageStep: Step<Input, Output> = {
           : "",
     });
 
-    const resp = await generateImageCompletion({
+    const file = Bun.file(image);
+    const mime = file.type;
+    const buf = await file.arrayBuffer();
+    const b64 = Buffer.from(buf).toString("base64");
+
+    const resp = await inference.see({
+      model: "gpt4v",
       prompt,
-      image: image,
+      data: b64,
+      mime,
     });
 
     // if failure, just return metadata as is (need to mark as failed)

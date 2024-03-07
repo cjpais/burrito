@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { generateCompletion } from "../../../cognition/openai";
 import { Step } from "../../../cognition/pipeline";
+import { inference } from "../../../cognition/inference";
 
 const InputSchema = z.object({
   text: z.string(),
@@ -23,9 +23,10 @@ export const titleTextStep: Step<Input, Output> = {
   run: async (metadata) => {
     // TODO try to extract the title from the first lines of the text
 
-    const title = await generateCompletion({
+    const title = await inference.chat({
       systemPrompt: `you are excellent at writing titles. proivide a singular title for the text`,
-      userPrompt: metadata.summary,
+      prompt: metadata.summary,
+      model: "gpt3.5",
     });
 
     if (!title) return metadata;

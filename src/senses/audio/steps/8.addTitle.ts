@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { Step } from "../../../cognition/pipeline";
-import { generateCompletion } from "../../../cognition/openai";
 import {
   SummarizedAudio,
   SummarizedAudioSchema,
   SummarySchema,
 } from "./7.generateSummary";
+import { inference } from "../../../cognition/inference";
 
 export const TitleSchema = SummarySchema.extend({
   title: z.string(),
@@ -23,11 +23,11 @@ export const addTitleStep: Step<SummarizedAudio, TitledAudio> = {
     return true;
   },
   run: async (metadata) => {
-    const title = (await generateCompletion({
-      systemPrompt:
-        "you are excellent at writing titles. proivide a singular title for the text.",
-      userPrompt: metadata.summary,
-    })) as string;
+    const title = await inference.chat({
+      systemPrompt: `you are excellent at writing titles. proivide a singular title for the text`,
+      prompt: metadata.summary,
+      model: "gpt3.5",
+    });
     return {
       ...metadata,
       title,

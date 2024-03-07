@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { generateEmbeddings } from "../../../cognition/openai";
 import {
   TranscribedAudioMetadata,
   TranscribedAudioMetadataSchema,
   TranscribedChunkSchema,
 } from "./2.transcribeAudio";
 import { Step, merge } from "../../../cognition/pipeline";
+import { inference } from "../../../cognition/inference";
 
 export const ChunkWithEmbeddingSchema = TranscribedChunkSchema.extend({
   embedding: z.array(z.number()).length(1536),
@@ -29,9 +29,10 @@ export const getChunkEmbeddingsStep: Step<
   inputType: TranscribedAudioMetadataSchema,
   outputType: ChunkEmbeddingsSchema,
   run: async (metadata) => {
-    const embeddings = await generateEmbeddings(
-      metadata.audio.chunks.map((chunk) => chunk.transcript)
-    );
+    const embeddings = await inference.embed({
+      texts: metadata.audio.chunks.map((chunk) => chunk.transcript),
+      model: "ada",
+    });
 
     const chunkEmbeddings = metadata.audio.chunks.map((chunk, i) => ({
       ...chunk,

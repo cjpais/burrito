@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { generateEmbeddings } from "../../../cognition/openai";
 import {
   TranscribedAudioMetadata,
   TranscribedAudioMetadataSchema,

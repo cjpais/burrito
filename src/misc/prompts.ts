@@ -108,6 +108,10 @@ const endOf2023 = new Date('2024-01-01T00:00:00Z').getTime() / 1000;
 const result = data.filter(d => d.created >= startOf2023 && d.created < endOf2023).map(d => ({ hash: d.hash, title: d.title, created: d.created }))
 result;
 \`\`\`
+
+you should only respond with the json
+
+{ "code": "code to execute" }
 `;
 
 export const INTERPRET_DATA_PROMPT_TEMPLATE = `

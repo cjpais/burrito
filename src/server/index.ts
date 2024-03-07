@@ -17,6 +17,10 @@ import { handleDeleteRequest } from "./handlers/delete";
 import { populateCodeCache } from "../tools/jsvm";
 import { handleEditRequest } from "./handlers/edit";
 import { handleTransformRequest } from "./handlers/transform";
+import {
+  handleInstallRequest,
+  populateInstalledTransforms,
+} from "./handlers/install";
 
 export let metadataList: any[] = [];
 
@@ -80,9 +84,6 @@ const runPipelineOnAllFiles = async () => {
         const newMetadata = await pipeline(metadata);
         console.log(`\ttook ${Date.now() - start}ms`);
 
-        metadata.type === "text" && console.log(metadata);
-        metadata.type === "text" && console.log(newMetadata);
-
         if (JSON.stringify(newMetadata) !== JSON.stringify(metadata)) {
           console.log("metadata changed, updating");
           await Bun.write(
@@ -142,6 +143,7 @@ const routes: Routes = {
   "^/delete$": handleDeleteRequest,
   "^/transform$": handleTransformRequest,
   "^/query$": handleQueryRequest,
+  "^/install$": handleInstallRequest,
   "^/query/embeddings$": handleEmbeddingsRequest,
   "^/query/data$": handleDataRequest,
 };
@@ -180,6 +182,7 @@ export const brainServer = async () => {
   console.log(chalk.bold(`Server running at http://localhost:${port}`));
 };
 
+populateInstalledTransforms();
 runPipelineOnAllFiles();
 populateCodeCache();
 populateQueryCache();

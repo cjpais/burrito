@@ -3,7 +3,7 @@ import { validateAuthToken } from ".";
 import { findSimilar } from "../memory/vector";
 import { QueryRequestSchema } from "./handlers/query";
 import { executeQuery } from "../tools/jsvm";
-import { generateEmbeddings } from "../cognition/openai";
+import { inference } from "../cognition/inference";
 
 export const RequestMetadataSchema = z.object({
   type: z.enum(["audio", "text"]).optional(),
@@ -257,10 +257,14 @@ export const handleEmbeddingsRequest = async (request: Request) => {
     let vectors = rawVectors;
 
     if (queries) {
+      const embeddings = await inference.embed({
+        texts: queries,
+        model: "ada",
+      });
       if (vectors) {
-        vectors = [...vectors, ...(await generateEmbeddings(queries))];
+        vectors = [...vectors, ...embeddings];
       } else {
-        vectors = await generateEmbeddings(queries);
+        vectors = embeddings;
       }
     }
 
