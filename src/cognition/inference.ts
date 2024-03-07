@@ -33,7 +33,19 @@ const whisperCpp = new WhisperCppProvider({
 });
 const whisperCppLimiter = createRateLimiter(1);
 
-const CHAT_MODELS: Record<string, ChatModel> = {
+export const ChatModelsEnum = z.enum([
+  "gpt4",
+  "gpt3.5",
+  "mistral7b",
+  "mixtral",
+  "mistral-small",
+  "mistral-medium",
+  "mistral-large",
+  "qwen1.5",
+]);
+export type ChatModels = z.infer<typeof ChatModelsEnum>;
+
+const CHAT_MODELS: Record<ChatModels, ChatModel> = {
   gpt4: {
     name: "gpt4",
     providerModel: "gpt-4-0125-preview",
@@ -76,19 +88,13 @@ const CHAT_MODELS: Record<string, ChatModel> = {
     provider: mistral,
     rateLimiter: mistralLimiter,
   },
+  "qwen1.5": {
+    name: "qwen1.5",
+    providerModel: "Qwen/Qwen1.5-72B-Chat",
+    provider: together,
+    rateLimiter: togetherLimiter,
+  },
 };
-
-export const ChatModelsEnum = z.enum([
-  "gpt4",
-  "gpt3.5",
-  "mistral7b",
-  "mixtral",
-  "mistral-small",
-  "mistral-medium",
-  "mistral-large",
-]);
-
-export type ChatModels = z.infer<typeof ChatModelsEnum>;
 
 const VISION_MODELS: Record<string, VisionModel> = {
   gpt4v: {
