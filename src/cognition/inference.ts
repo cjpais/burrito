@@ -99,7 +99,7 @@ const CHAT_MODELS: Record<ChatModels, ChatModel> = {
 const VISION_MODELS: Record<string, VisionModel> = {
   gpt4v: {
     name: "gpt4v",
-    providerModel: "gpt-4-1106-vision-preview",
+    providerModel: "gpt-4-vision-preview",
     provider: openai,
     rateLimiter: oaiChatLimiter,
   },
