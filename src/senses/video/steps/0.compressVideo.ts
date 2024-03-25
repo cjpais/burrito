@@ -17,7 +17,7 @@ type Output = z.infer<typeof OutputSchema>;
 const COMPRESSED_FILENAME = "compressed.mp4";
 
 export const compressVideoStep: Step<FileMetadata, Output> = {
-  name: "compressImage",
+  name: "compressVideo",
   inputType: FileMetadataSchema,
   outputType: OutputSchema,
   validate: async (metadata) => {
