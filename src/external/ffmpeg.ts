@@ -124,7 +124,7 @@ export const extractAudio = async (
   output: string
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
-    console.log("INPUT", input, output)
+    console.log("INPUT", input, output);
     ffprobe(input, (err, metadata) => {
       if (err) {
         console.error("Error reading file metadata:", err);
@@ -136,41 +136,39 @@ export const extractAudio = async (
       );
       if (!hasAudio) {
         console.log("No audio stream found in input file, writing empty mp3");
-        
-ffmpeg()
-  .input('anoisesrc=d=1')
-  .inputOptions(['-f lavfi'])
-  .audioFrequency(44100)
-  .audioBitrate('128k')
-  .output(output)
-  .on('end', () => {
-    console.log('Audio file has been generated');
-    resolve()
-  })
-  .on('error', (err) => {
-    console.error('Error generating audio file:', err);
-    reject()
-  })
-  .run();
 
+        ffmpeg()
+          .input("anoisesrc=d=1")
+          .inputOptions(["-f lavfi"])
+          .audioFrequency(44100)
+          .audioBitrate("128k")
+          .output(output)
+          .on("end", () => {
+            console.log("Audio file has been generated");
+            resolve();
+          })
+          .on("error", (err) => {
+            console.error("Error generating audio file:", err);
+            reject();
+          })
+          .run();
       } else {
-console.log("running normal ffmpeg")
-    ffmpeg(input)
-      .output(output)
-      .noVideo()
-      .audioCodec("libmp3lame")
-      .audioBitrate(128)
-      .on("end", () => {
-        console.log(`Audio extracted and saved to ${output}`);
-        resolve();
-      })
-      .on("error", (err) => {
-        console.error(`An error occurred: ${err.message}`);
-        reject(err);
-      })
-      .run();
+        console.log("running normal ffmpeg");
+        ffmpeg(input)
+          .output(output)
+          .noVideo()
+          .audioCodec("libmp3lame")
+          .audioBitrate(128)
+          .on("end", () => {
+            console.log(`Audio extracted and saved to ${output}`);
+            resolve();
+          })
+          .on("error", (err) => {
+            console.error(`An error occurred: ${err.message}`);
+            reject(err);
+          })
+          .run();
       }
     });
-
   });
 };
