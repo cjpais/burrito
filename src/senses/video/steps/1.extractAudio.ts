@@ -35,9 +35,6 @@ export const extractAudioStep: Step<Input, Output> = {
     const audioTrack = `${fileInfo.dir}/${AUDIO_TRACK_FILENAME}`;
     const compressedVideo = `${fileInfo.dir}/${metadata.compressed}`;
     await extractAudio(compressedVideo, audioTrack);
-    if (!fs.existsSync(audioTrack)) {
-      await Bun.write(audioTrack, "");
-    }
     return {
       ...metadata,
       audioTrack: AUDIO_TRACK_FILENAME,

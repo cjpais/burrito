@@ -1,4 +1,4 @@
-import ffmpeg from "fluent-ffmpeg";
+import ffmpeg, { ffprobe } from "fluent-ffmpeg";
 
 export const getMediaFileInfo = async (filePath: string) => {
   const metadata = await new Promise<ffmpeg.FfprobeData>((resolve, reject) => {
@@ -124,6 +124,22 @@ export const extractAudio = async (
   output: string
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
+    ffprobe(input, (err, metadata) => {
+      if (err) {
+        console.error("Error reading file metadata:", err);
+        reject(err);
+      }
+
+      const hasAudio = metadata.streams.some(
+        (stream) => stream.codec_type === "audio"
+      );
+      if (!hasAudio) {
+        console.log("No audio stream found in input file");
+        Bun.write(output, "").then(() => resolve());
+        return;
+      }
+    });
+
     ffmpeg(input)
       .output(output)
       .noVideo()
