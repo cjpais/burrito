@@ -34,8 +34,8 @@
     "mustache": "^4.2.0",
     "openai": "^4.21.0",
     "quicktype-core": "^23.0.81",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.0.0-rc-7771d3a7-20240827",
+    "react-dom": "^19.0.0-rc-7771d3a7-20240827",
     "react-markdown": "^9.0.1",
     "remark-gfm": "^4.0.0",
     "zod": "^3.22.4"
