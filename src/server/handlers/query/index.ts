@@ -103,7 +103,7 @@ const runBasicCompletions = async (req: z.infer<typeof QueryRequestSchema>) => {
     name: "generate keywords",
     systemPrompt: KEYWORD_SYS_PROMPT,
     userPrompt: `Question: ${req.query}`,
-    model: "gpt3.5",
+    model: "4o-mini",
   });
 
   const [inferenceNeeded, code, keywords] = await Promise.all([

@@ -35,7 +35,7 @@ const whisperCppLimiter = createRateLimiter(1);
 
 export const ChatModelsEnum = z.enum([
   "gpt4",
-  "gpt3.5",
+  "4o-mini",
   "mistral7b",
   "mixtral",
   "mistral-small",
@@ -52,9 +52,9 @@ const CHAT_MODELS: Record<ChatModels, ChatModel> = {
     provider: openai,
     rateLimiter: oaiChatLimiter,
   },
-  "gpt3.5": {
-    name: "gpt3.5",
-    providerModel: "gpt-3.5-turbo-0125",
+  "4o-mini": {
+    name: "4o-mini",
+    providerModel: "gpt-4o-mini",
     provider: openai,
     rateLimiter: oaiChatLimiter,
   },
