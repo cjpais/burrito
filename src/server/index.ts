@@ -21,6 +21,7 @@ import {
   handleInstallRequest,
   populateInstalledTransforms,
 } from "./handlers/install";
+import { handleGetTransformsRequest } from "./handlers/transform/getTransforms";
 
 export let metadataList: any[] = [];
 
@@ -142,6 +143,7 @@ const routes: Routes = {
   "^/edit$": handleEditRequest,
   "^/delete$": handleDeleteRequest,
   "^/transform$": handleTransformRequest,
+  "^/transforms$": handleGetTransformsRequest,
   "^/query$": handleQueryRequest,
   "^/install$": handleInstallRequest,
   "^/query/embeddings$": handleEmbeddingsRequest,

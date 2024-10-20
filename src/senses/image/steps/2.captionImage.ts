@@ -11,7 +11,7 @@ import {
 } from "../../../misc/prompts";
 import { extractJSON } from "../../../cognition";
 import Mustache from "mustache";
-import { inference } from "../../../cognition/inference";
+import { inference, VISION_MODELS } from "../../../cognition/inference";
 
 const InputSchema = FileMetadataSchema.extend({
   compressed: z.string(),
@@ -25,6 +25,10 @@ const OutputSchema = InputSchema.extend({
 
 type Input = z.infer<typeof InputSchema>;
 type Output = z.infer<typeof OutputSchema>;
+
+const visionModelKeys = Object.keys(
+  VISION_MODELS
+) as (keyof typeof VISION_MODELS)[];
 
 export const captionImageStep: Step<Input, Output> = {
   name: "captionImage",
@@ -41,7 +45,7 @@ export const captionImageStep: Step<Input, Output> = {
     const prompt = Mustache.render(DESCRIBE_IMAGE_PROMPT_TEMPLATE, {
       additional:
         typeof metadata.userData === "string"
-          ? ` using the context: ${metadata.userData}`
+          ? ` using the context provided by a person: ${metadata.userData}`
           : "",
     });
 
@@ -57,6 +61,22 @@ export const captionImageStep: Step<Input, Output> = {
       mime,
     });
 
+    const captions = await Promise.all(
+      visionModelKeys.map(async (model) => {
+        const resp = await inference.see({
+          model,
+          prompt:
+            typeof metadata.userData === "string"
+              ? `describe this image in detail using the context provided by a person: ${metadata.userData}`
+              : "describe this image in detail",
+          data: b64,
+          mime,
+        });
+
+        return { model, resp };
+      })
+    );
+
     // if failure, just return metadata as is (need to mark as failed)
     if (!resp) return metadata;
     const json = extractJSON<ImageDescription>(resp);
@@ -67,6 +87,7 @@ export const captionImageStep: Step<Input, Output> = {
       caption: json.caption,
       description: json.description,
       extractedText: json.extractedText,
+      imageCaptions: captions,
     };
     return output;
   },

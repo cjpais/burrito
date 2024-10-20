@@ -399,13 +399,13 @@ Answer: \`\`\`json
 `;
 
 export const DESCRIBE_IMAGE_PROMPT_TEMPLATE = `
-please help me fill out this json{{{additional}}}
+please help me fill out this json.{{{additional}}}
 
 \`\`\`json
 {
   "description": write a detailed description of this image. just describe it, without mentioning that it is an image. if the image contains text, give a gist of the text,
   "caption": a nice caption for the image,
-  "extractedText": if the image contains text, please extract the text in gfm markdown format. using two newlines to signify a linebreak. if none, put null
+  "extractedText": if the image contains text, please extract the text. if there is none, put null
 }
 \`\`\`
 `;

@@ -21,7 +21,14 @@ export type RunCompletionParams = {
   model?: ChatModels;
 };
 
-const CODE_REGEX = /```.*?\n([\s\S]*?)```/;
+// const CODE_REGEX = /`{1,3}(?:json)?\n([\s\S]*?)\n`{1,3}/;
+const CODE_REGEX = /(```json\n(.*?)\n```)/s;
+
+const JSON_PATTERNS = [
+  /```json\n(.*?)\n```/,
+  /```json\s*({[\s\S]*})\s*```/,
+  /```(.*?)```/,
+];
 
 type SummarizeParams = {
   summaryLength?: string;
@@ -33,7 +40,7 @@ export const summarize = async (
   text: string,
   params: SummarizeParams = {
     summaryLength: "4 short sentences",
-    model: "gpt4",
+    model: "mid",
   }
 ) => {
   const toSummarize = params.userData
@@ -41,10 +48,10 @@ export const summarize = async (
     : text;
 
   // TODO really should have better type hints to avoid this
-  if (!params.model) params.model = "gpt4";
+  if (!params.model) params.model = "mid";
 
   return inference.chat({
-    systemPrompt: `You are excellent at summarizing. Summarize from the first person point of view. Summarize the following text into ${params.summaryLength}. If the text is shorter than ${params.summaryLength}, output the text as it was given to you.`,
+    systemPrompt: `You are excellent at summarizing. Summarize the following text into ${params.summaryLength}.`,
     prompt: toSummarize,
     model: params.model,
   });
@@ -97,7 +104,6 @@ export const runJsonCompletion = async <T>({
     return result;
   } catch {
     const match = rawCompletion.match(CODE_REGEX);
-    // console.log(name, systemPrompt, userPrompt, model, rawCompletion, match[1]);
     if (match && match.length > 1) {
       result = JSON.parse(match[1]);
       return result;
@@ -116,16 +122,22 @@ export const extractJSON = <T>(text: string): T | null => {
   try {
     result = JSON.parse(text) as T;
   } catch {
-    try {
-      const match = text.match(CODE_REGEX);
-      if (match && match.length > 1) {
-        result = JSON.parse(match[1]) as T;
-      } else {
-        console.log(`NO JSON MATCH FOUND FOR TEXT: ${text}`);
+    for (const pattern of JSON_PATTERNS) {
+      const match = text.match(pattern);
+      if (match) {
+        try {
+          console.log("MATCH", match, match[1]);
+          const parsedJson = JSON.parse(match[1].trim());
+          return parsedJson; // Return the parsed JSON content
+        } catch (error) {
+          // Log the error and continue to the next pattern
+          // console.error(`Failed to parse JSON: from text ${text}`);
+        }
       }
-    } catch {
-      console.log(`NO JSON MATCH FOUND FOR TEXT: ${text}`);
     }
+
+    // If all patterns fail to produce a valid JSON, log an error
+    console.error("No valid JSON found in the input.", text);
   }
 
   return result;
@@ -141,7 +153,7 @@ export const generateTranscriptions = async (files: string[]) => {
   const transcriptions = await Promise.all(
     files.map((filename, idx) => {
       const file = process.env.LOCAL_WHISPER_API_URL
-        ? filename
+        ? fs.readFileSync(filename)
         : fs.createReadStream(filename);
 
       return inference

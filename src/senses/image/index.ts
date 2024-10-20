@@ -4,6 +4,7 @@ import { metadataList } from "../../server";
 import { GenericObject } from "../../server/handlers";
 import { getMetadataStep } from "../audio/steps/0a.getMetadata";
 import { compressImageStep } from "./steps/0.compressImage";
+import { convertImageStep } from "./steps/0a.convertImage";
 import { reverseGeocodeStep } from "./steps/1.reverseGeocode";
 import { captionImageStep } from "./steps/2.captionImage";
 import { titleImageStep } from "./steps/3.titleImage";
@@ -11,6 +12,7 @@ import { embedImageStep } from "./steps/4.embedImage";
 
 const imagePipelineSteps: Step<any, any>[] = [
   getMetadataStep,
+  convertImageStep,
   compressImageStep,
   reverseGeocodeStep,
   captionImageStep,

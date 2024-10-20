@@ -6,6 +6,7 @@ import {
   createRateLimiter,
   VisionModel,
   TranscriptionModel,
+  AnthropicProvider,
   EmbeddingModel,
   ChatModel,
   Inference,
@@ -17,6 +18,17 @@ const openai = new OpenAIProvider({
 });
 const oaiChatLimiter = createRateLimiter(150);
 const oaiWhisperLimiter = createRateLimiter(1.5);
+
+const anthropic = new AnthropicProvider({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+});
+const anthropicLimiter = createRateLimiter(0.5);
+
+const openrouter = new OpenAIProvider({
+  apiKey: process.env.OPENROUTER_API_KEY!,
+  baseURL: "https://openrouter.ai/api/v1",
+});
+const openrouterLimiter = createRateLimiter(100);
 
 const together = new TogetherProvider({
   apiKey: process.env.TOGETHER_API_KEY!,
@@ -34,6 +46,10 @@ const whisperCpp = new WhisperCppProvider({
 const whisperCppLimiter = createRateLimiter(1);
 
 export const ChatModelsEnum = z.enum([
+  "tiny",
+  "small",
+  "mid",
+  "expensive",
   "gpt4",
   "4o-mini",
   "mistral7b",
@@ -41,11 +57,44 @@ export const ChatModelsEnum = z.enum([
   "mistral-small",
   "mistral-medium",
   "mistral-large",
-  "qwen1.5",
+  "qwen2.5",
+  "llama3-405b",
+  "llama3-70b",
+  "llama3-8b",
+  "llama3-3b",
+  "llama3-1b",
+  "ministral-8b",
+  "o1-mini",
+  "4o",
 ]);
 export type ChatModels = z.infer<typeof ChatModelsEnum>;
 
 const CHAT_MODELS: Record<ChatModels, ChatModel> = {
+  tiny: {
+    name: "llama3-1B",
+    providerModel: "meta-llama/llama-3.2-1b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  small: {
+    name: "ministral-8B",
+    providerModel: "ministral-8b-2410",
+    provider: mistral,
+    rateLimiter: mistralLimiter,
+  },
+  mid: {
+    name: "qwen2.5-72B",
+    providerModel: "qwen/qwen-2.5-72b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  expensive: {
+    name: "sonnet3.5",
+    providerModel: "claude-3-5-sonnet-20240620",
+    provider: anthropic,
+    rateLimiter: anthropicLimiter,
+  },
+  // code: {},
   gpt4: {
     name: "gpt4",
     providerModel: "gpt-4-0125-preview",
@@ -55,6 +104,18 @@ const CHAT_MODELS: Record<ChatModels, ChatModel> = {
   "4o-mini": {
     name: "4o-mini",
     providerModel: "gpt-4o-mini",
+    provider: openai,
+    rateLimiter: oaiChatLimiter,
+  },
+  "4o": {
+    name: "4o",
+    providerModel: "gpt-4o",
+    provider: openai,
+    rateLimiter: oaiChatLimiter,
+  },
+  "o1-mini": {
+    name: "o1-mini",
+    providerModel: "o1-mini",
     provider: openai,
     rateLimiter: oaiChatLimiter,
   },
@@ -88,20 +149,92 @@ const CHAT_MODELS: Record<ChatModels, ChatModel> = {
     provider: mistral,
     rateLimiter: mistralLimiter,
   },
-  "qwen1.5": {
-    name: "qwen1.5",
-    providerModel: "Qwen/Qwen1.5-72B-Chat",
-    provider: together,
-    rateLimiter: togetherLimiter,
+  "qwen2.5": {
+    name: "qwen2.5-72B",
+    providerModel: "qwen/qwen-2.5-72b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-405b": {
+    name: "llama3-405B",
+    providerModel: "meta-llama/llama-3.1-405b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-70b": {
+    name: "llama3-70B",
+    providerModel: "meta-llama/llama-3.1-70b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-8b": {
+    name: "llama3-8B",
+    providerModel: "meta-llama/llama-3.1-8b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-3b": {
+    name: "llama3-3B",
+    providerModel: "meta-llama/llama-3.2-3b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-1b": {
+    name: "llama3-1B",
+    providerModel: "meta-llama/llama-3.2-1b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "ministral-8b": {
+    name: "ministral-8b",
+    providerModel: "ministral-8b-2410",
+    provider: mistral,
+    rateLimiter: mistralLimiter,
   },
 };
 
-const VISION_MODELS: Record<string, VisionModel> = {
+export const VISION_MODELS: Record<string, VisionModel> = {
   gpt4v: {
     name: "gpt4v",
     providerModel: "gpt-4-vision-preview",
     provider: openai,
     rateLimiter: oaiChatLimiter,
+  },
+  "4o": {
+    name: "4o",
+    providerModel: "gpt-4o",
+    provider: openai,
+    rateLimiter: oaiChatLimiter,
+  },
+  "sonnet3.5": {
+    name: "sonnet3.5",
+    providerModel: "claude-3-5-sonnet-20240620",
+    provider: anthropic,
+    rateLimiter: anthropicLimiter,
+  },
+  "qwen2-72b-vl": {
+    name: "qwen2-72b-vl",
+    providerModel: "qwen/qwen-2-vl-72b-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-90b": {
+    name: "llama3-90b",
+    providerModel: "meta-llama/llama-3.2-90b-vision-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "llama3-11b": {
+    name: "llama3-11b",
+    providerModel: "meta-llama/llama-3.2-11b-vision-instruct",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  pixtral: {
+    name: "pixtral",
+    providerModel: "mistralai/pixtral-12b",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
   },
 };
 

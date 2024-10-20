@@ -28,8 +28,16 @@ export const compressImageStep: Step<FileMetadata, Output> = {
   },
   run: async (metadata) => {
     const fileInfo = await getFileInfo(metadata);
+
     const compressed = `${fileInfo.dir}/compressed.jpg`;
-    await compressImage(fileInfo.path, compressed);
+    let input = fileInfo.path;
+
+    // check if the file "converted.jpg" exists
+    if (fs.existsSync(`${fileInfo.dir}/converted.jpg`)) {
+      input = `${fileInfo.dir}/converted.jpg`;
+    }
+
+    await compressImage(input, compressed);
     return {
       ...metadata,
       compressed: "compressed.jpg",

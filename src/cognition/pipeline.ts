@@ -76,12 +76,12 @@ export const processPipeline = async <Input>(
     const parsedNewOutput = step.outputType.safeParse(newOutput);
     if (!parsedNewOutput.success) {
       console.error(
-        // `Output of step is not valid.\nOutput: ${JSON.stringify(
-        //   newOutput
-        // )}\nStep: ${step.name}\nExpected: ${JSON.stringify(step.outputType)}`
-        chalk.red(
-          `Output of step is not valid.\nError: ${parsedNewOutput.error.message}`
-        )
+        `Output of step is not valid.\nOutput: ${JSON.stringify(
+          newOutput
+        )}\nStep: ${step.name}\nExpected: ${JSON.stringify(step.outputType)}`
+        // chalk.red(
+        //   `Output of step is not valid.\nError: ${parsedNewOutput.error.message}`
+        // )
       );
       // TODO should not return early, but figure out best course of action
       return output;
