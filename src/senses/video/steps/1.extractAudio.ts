@@ -39,6 +39,7 @@ export const extractAudioStep: Step<Input, Output> = {
       await extractAudio(compressedVideo, audioTrack);
     } catch {
       console.error("Error extracting audio");
+      return { ...metadata };
     }
     return {
       ...metadata,
