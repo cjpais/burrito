@@ -34,7 +34,12 @@ export const extractAudioStep: Step<Input, Output> = {
     const fileInfo = await getFileInfo(metadata);
     const audioTrack = `${fileInfo.dir}/${AUDIO_TRACK_FILENAME}`;
     const compressedVideo = `${fileInfo.dir}/${metadata.compressed}`;
-    await extractAudio(compressedVideo, audioTrack);
+
+    try {
+      await extractAudio(compressedVideo, audioTrack);
+    } catch {
+      console.error("Error extracting audio");
+    }
     return {
       ...metadata,
       audioTrack: AUDIO_TRACK_FILENAME,
