@@ -63,6 +63,7 @@ export const captionImageStep: Step<Input, Output> = {
 
     const captions = await Promise.all(
       visionModelKeys.map(async (model) => {
+	try {
         const resp = await inference.see({
           model,
           prompt:
@@ -72,8 +73,11 @@ export const captionImageStep: Step<Input, Output> = {
           data: b64,
           mime,
         });
-
         return { model, resp };
+	} catch (e) {
+        return { model, resp: "error" };
+	}
+
       })
     );
 
