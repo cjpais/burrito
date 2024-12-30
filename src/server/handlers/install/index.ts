@@ -56,8 +56,10 @@ export const handleInstallRequest = async (request: Request) => {
     };
     Bun.write(INSTALLED_TRANSFORMS_PATH, JSON.stringify(installedTransforms));
   } else {
-    return new Response("Already installed", { status: 409 });
+    return new Response(JSON.stringify({ result: "Already installed" }), {
+      status: 409,
+    });
   }
 
-  return new Response("Installed", { status: 200 });
+  return new Response(JSON.stringify({ result: "Installed" }), { status: 200 });
 };

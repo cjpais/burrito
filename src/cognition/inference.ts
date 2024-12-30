@@ -66,6 +66,9 @@ export const ChatModelsEnum = z.enum([
   "ministral-8b",
   "o1-mini",
   "4o",
+  "qwq",
+  "flash-r",
+  "flash",
 ]);
 export type ChatModels = z.infer<typeof ChatModelsEnum>;
 
@@ -190,6 +193,24 @@ const CHAT_MODELS: Record<ChatModels, ChatModel> = {
     providerModel: "ministral-8b-2410",
     provider: mistral,
     rateLimiter: mistralLimiter,
+  },
+  qwq: {
+    name: "qwq",
+    providerModel: "qwen/qwq-32b-preview",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  flash: {
+    name: "flash",
+    providerModel: "google/gemini-2.0-flash-exp:free",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
+  },
+  "flash-r": {
+    name: "flash-r",
+    providerModel: "google/gemini-2.0-flash-thinking-exp:free",
+    provider: openrouter,
+    rateLimiter: openrouterLimiter,
   },
 };
 

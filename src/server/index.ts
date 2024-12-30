@@ -19,9 +19,12 @@ import { handleEditRequest } from "./handlers/edit";
 import { handleTransformRequest } from "./handlers/transform";
 import {
   handleInstallRequest,
+  installedTransforms,
   populateInstalledTransforms,
 } from "./handlers/install";
 import { handleGetTransformsRequest } from "./handlers/transform/getTransforms";
+import { transformEach } from "./handlers/transform/transform";
+import { getSimpleData } from "../misc/misc";
 
 export let metadataList: any[] = [];
 
@@ -84,6 +87,30 @@ const runPipelineOnAllFiles = async () => {
         const start = Date.now();
         const newMetadata = await pipeline(metadata);
         console.log(`\ttook ${Date.now() - start}ms`);
+
+        const transforms = await Promise.all(
+          Object.entries(installedTransforms).map(async ([app, params]) => {
+            if (newMetadata.transforms && newMetadata.transforms[app]) {
+              console.log(`Transform for ${app} already exists, skipping...`);
+              return null;
+            }
+            return {
+              app: app,
+              transform: await transformEach([getSimpleData(newMetadata)], {
+                ...params,
+                completionType: "json",
+                debug: false,
+              }),
+            };
+          })
+        );
+
+        transforms.forEach((t) => {
+          if (t) {
+            newMetadata.transforms = newMetadata.transforms || {};
+            newMetadata.transforms[t.app] = t.transform[0].completion;
+          }
+        });
 
         if (JSON.stringify(newMetadata) !== JSON.stringify(metadata)) {
           console.log("metadata changed, updating");
