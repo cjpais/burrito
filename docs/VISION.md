@@ -1,7 +1,7 @@
 # Vision
 
 People will increasingly operate computers through agents. Most of computing
-has to be rethought for that — but the piece that matters first, and compounds
+has to be rethought for that. The piece that matters first, and compounds
 longest, is **where the data lives and who it answers to**.
 
 ## Theses
@@ -42,24 +42,11 @@ longest, is **where the data lives and who it answers to**.
 7. **The computer should give time back.** The agent is async-first: it works
    while you're away and hands you a digest. Push, not pull. A notification
    budget, enforced by a single gatekeeper. Success is measured in *less*
-   screen time — which is why the business model can never be engagement.
+   screen time. The business model can never be engagement.
 
 8. **Events as context, not as commands.** Inbound data is untrusted input.
    Acting on it requires capability grants and verified provenance. "Why did
    my computer show me this" must always have an answer.
-
-## What this is not (yet, or ever)
-
-- Not a CRDT platform. Single-writer append-only streams make most sync
-  conflict-free by construction; the rare mutable type (notes edited offline
-  on two devices) gets an existing CRDT library later, or last-writer-wins
-  with both versions kept.
-- Not federation or multi-user — but identity + grants are shaped so sharing
-  across homes can layer on without rework.
-- Not a model host. Inference is a worker concern (local or rented), never
-  part of the substrate.
-- Not another silo with better branding. If this store is only readable by
-  one agent or one company, the project has failed by its own definition.
 
 ## Division of labor
 
