@@ -13,8 +13,9 @@ description: Work on stuffed-burrito (the personal data home). Use when reading,
 
 ## Invariants you must never violate
 
-- Truth = streams + blobs as plain files. SQLite index and `views/` are
-  regenerable; code that makes them load-bearing is a bug.
+- Truth = `home.db` (append-only `events`, SQLite/WAL) + blobs as plain
+  files. `views/` and `exports/` (JSONL) are derived — but the export must
+  stay complete: rebuild-and-diff is the test. Never UPDATE or DELETE events.
 - Append-only, single writer per source. Corrections and enrichment are new
   `derived.*` records referencing their subject — never mutations.
 - Every record: `ts` (occurred) + `recorded_at` (ingested) + `source` + type

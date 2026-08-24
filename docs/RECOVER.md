@@ -60,26 +60,31 @@ In the VM: `tailscale up`, install runtime (bun, caddy, restic), clone repo.
 ## 2. Restore data
 
 ```bash
+# the log: litestream restore (continuous WAL replica in object storage)
+litestream restore -o /srv/home/home.db <replica-url>
+# blobs + exports + views: restic
 restic -r <b2-repo> restore latest --target /srv/home
-# expected layout: /srv/home/{streams,blobs,views,index.sqlite}
+# expected layout: /srv/home/{home.db,blobs,exports,views}
+# fallback if the litestream replica is lost: rebuild home.db from exports/
 ```
 
 ## 3. Rebuild derived state
 
 ```bash
-# TODO: home index rebuild   (streams+blobs -> index.sqlite; MUST always work)
+# TODO: home rebuild --from-exports   (exports+blobs -> home.db; MUST always work)
 # TODO: home views render    (name records -> views/ trees)
 ```
 
 ## 4. Verify
 
 ```bash
-# TODO: home verify  — counts per stream vs index, blob hashes spot-check,
-#        newest event age, blob_locations tier audit
+# TODO: home verify  — per-source counts: exports vs db; blob hash
+#        spot-check; newest event age; blob_locations tier audit
 ```
 
 ## 5. Repoint
 
 - DNS: ingest.<domain> -> new IP (or relay VPS unchanged if using one)
 - Mint fresh device tokens; revoke old generation
-- Re-enable listeners + restic timer + the scheduled restore drill
+- Re-enable listeners, litestream, restic timer, and the scheduled drills
+  (restore drill + export rebuild-and-diff)

@@ -8,12 +8,15 @@ evolve by adding, never by mutating history).
 
 ```
 Layer 3: VIEWS/NAMES   folder trees, albums, tags, rollups — materialized, regenerable
-Layer 2: RECORDS/LOG   append-only event streams; SQLite index
+Layer 2: RECORDS/LOG   append-only event log in SQLite; JSONL export as exit format
 Layer 1: BLOBS (CAS)   immutable bytes by hash; local and/or remote tiers
 ```
 
-Truth lives in layers 1–2 as plain files. Layer 3 and the SQLite index are
-derived and may be deleted at any time without loss.
+Truth lives in layers 1–2: blobs as plain files, records in `home.db`
+(SQLite, WAL mode — the single transactional write path). Layer 3 and the
+JSONL export are derived. The logical invariants — append-only, single writer
+per source, total provenance, exportable to plain text at all times — are the
+constitution; SQLite-as-canonical is an implementation choice under them.
 
 ## Layer 1 — blobs
 
@@ -28,8 +31,10 @@ derived and may be deleted at any time without loss.
 
 ### Envelope
 
-One JSON object per line, in per-source append-only streams:
-`streams/<source>/<YYYY-MM>.jsonl`
+The logical record. Canonical home: the `events` table in `home.db`.
+Interchange/archival form: one JSON object per line in
+`exports/<source>/<YYYY-MM>.jsonl`, continuously materialized by the export
+listener. The JSONL format is normative — it is the exit.
 
 ```json
 {
@@ -87,7 +92,7 @@ fetching the original: taken-at, GPS + place name, a thumbnail (few KB),
 caption, OCR text. This is the agent's fovea; originals are fetched on
 demand. Embeddings are derived, regenerable, and never precious.
 
-## SQLite index (regenerable)
+## SQLite — the log (`home.db`, canonical)
 
 ```sql
 CREATE TABLE events (
@@ -109,8 +114,14 @@ CREATE TABLE grants (token_hash TEXT PRIMARY KEY, device TEXT,
 CREATE TABLE cursors (listener TEXT PRIMARY KEY, last_event_id TEXT);
 ```
 
-Deleting the index and rebuilding from streams + blobs must always work.
-That property is tested, not assumed.
+Append-only is enforced in the schema (no UPDATE/DELETE on `events`;
+triggers or the app layer reject both). Replication: litestream ships the WAL
+to object storage continuously; blobs, views, and exports go via restic.
+
+**The export discipline** (v1's rebuild rule, arrow flipped): a listener
+continuously writes the JSONL export; a scheduled drill rebuilds a fresh db
+from `exports/` + blobs and diffs it against `home.db`. Export completeness
+is tested, not assumed. Exit = exports + blobs, no cooperation required.
 
 ## HTTP API (v0)
 
@@ -154,16 +165,19 @@ Start with `days/` only; add levels when use demands them.
 ## Listeners
 
 A listener = cursor over the log + a filter + a job that appends derived
-records under its own `source` (e.g. `listener-geocode`). Failures re-run
+records under its own `source` (e.g. `listener-geocode`). The JSONL export is
+itself a listener (`listener-export`), first among equals. Failures re-run
 idempotently (same input → same derived record id). v0 trigger is polling
 the cursor; push can come later. Burrito v1's senses pipeline steps
 (geocode, transcribe, caption, thumbnail) become listeners here.
 
 ## Invariants (the short list everything must preserve)
 
-1. Streams and blobs are plain files; truth is never only in a database.
+1. Blobs are plain files; records are exportable to plain JSONL at all
+   times, and the export's completeness is continuously verified.
 2. Append-only; single writer per source; provenance total.
-3. Index and views are regenerable; deleting them loses nothing.
+3. Views and exports are regenerable from the log; a db rebuilt from
+   exports must be equivalent to the live one.
 4. Anything worth remembering is written to the store — never only held in
    a context window, a cache, or a model.
 5. The store is readable without any particular agent, app, or company.

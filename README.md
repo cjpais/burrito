@@ -12,7 +12,8 @@ compounds and outlives every model: **the data substrate**.
 
 - A **content-addressed blob store** for photos, audio, video, files (local and/or remote tiers).
 - An **append-only event log**: single-writer streams per device, everything timestamped, provenance on every record.
-- A **SQLite index** over both — regenerable, disposable, never the source of truth.
+- **SQLite as the log** (`home.db`) — the transactional spine, continuously
+  exported to plain JSONL, which remains the exit/interchange format.
 - **Materialized views**: human-navigable folder trees, tags, albums, and rollups rendered *from* records — names are data, not structure.
 - **Senses**: emitters (phone, Handy, photo apps, macOS bridge) that append; **listeners** that derive percepts (geocode, transcribe, caption, daily rollups).
 - **Agents as clients**: pi (or anything else) reads and writes through the same API and grants as every other app. The agent is the system's programmer, not its kernel.
